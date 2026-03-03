@@ -1,0 +1,131 @@
+<div class="caja">
+  <div class="caja__header">
+    <h1 class="caja__title">Caja</h1>
+    @if (!cajaAbierta()) {
+      <button class="btn btn--primary" (click)="showApertura.set(true)">Abrir caja</button>
+    } @else {
+      <div class="caja__actions">
+        <button class="btn btn--secondary" (click)="showMovimiento.set(true)">＋ Movimiento</button>
+        <button class="btn btn--danger" (click)="cerrarCaja()">Cerrar caja</button>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="caja__loading">Cargando...</div>
+  }
+
+  @if (!loading() && cajaAbierta()) {
+    <div class="caja__status card">
+      <div class="caja__kpi">
+        <span class="caja__kpi-label">Monto apertura</span>
+        <span class="caja__kpi-value">{{ formatMoneda(cajaAbierta()!.monto_apertura) }}</span>
+      </div>
+      <div class="caja__kpi">
+        <span class="caja__kpi-label">Abierta desde</span>
+        <span class="caja__kpi-value">{{ formatFecha(cajaAbierta()!.fecha_apertura) }}</span>
+      </div>
+      <div class="caja__kpi">
+        <span class="caja__kpi-label">Estado</span>
+        <span class="caja__kpi-value badge badge--success">Abierta</span>
+      </div>
+    </div>
+
+    @if (movimientos().length) {
+      <h2 class="caja__subtitle">Movimientos</h2>
+      <div class="card caja__table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Monto</th>
+              <th>Concepto</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of movimientos(); track m.id_movimiento) {
+              <tr>
+                <td>
+                  <span class="badge" [class.badge--success]="m.tipo==='INGRESO'" [class.badge--danger]="m.tipo==='EGRESO'">
+                    {{ m.tipo }}
+                  </span>
+                </td>
+                <td>{{ formatMoneda(m.monto) }}</td>
+                <td>{{ m.concepto ?? '—' }}</td>
+                <td>{{ formatFecha(m.fecha) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  @if (!loading() && !cajaAbierta()) {
+    <div class="card caja__empty">
+      <p>No hay caja abierta. Abre una para empezar.</p>
+    </div>
+  }
+</div>
+
+<!-- ══ Modal Apertura ══ -->
+@if (showApertura()) {
+  <div class="modal-overlay" (click)="showApertura.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">Abrir caja</h2>
+        <button class="modal__close" (click)="showApertura.set(false)">✕</button>
+      </div>
+      <div class="modal__body">
+        <label class="form-field">
+          <span class="form-field__label">Monto de apertura ($)</span>
+          <input type="number" class="input" [ngModel]="montoApertura()" (ngModelChange)="montoApertura.set($event)" min="0" />
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Observaciones</span>
+          <textarea class="input" rows="2" [ngModel]="obsApertura()" (ngModelChange)="obsApertura.set($event)"></textarea>
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="showApertura.set(false)">Cancelar</button>
+        <button class="btn btn--primary" [disabled]="saving()" (click)="abrirCaja()">{{ saving() ? 'Abriendo...' : 'Abrir caja' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Modal Movimiento ══ -->
+@if (showMovimiento()) {
+  <div class="modal-overlay" (click)="showMovimiento.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">Registrar movimiento</h2>
+        <button class="modal__close" (click)="showMovimiento.set(false)">✕</button>
+      </div>
+      <div class="modal__body">
+        <label class="form-field">
+          <span class="form-field__label">Tipo</span>
+          <select class="input" [ngModel]="movTipo()" (ngModelChange)="movTipo.set($event)">
+            <option value="INGRESO">Ingreso</option>
+            <option value="EGRESO">Egreso</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Monto ($)</span>
+          <input type="number" class="input" [ngModel]="movMonto()" (ngModelChange)="movMonto.set($event)" min="0" />
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Concepto</span>
+          <input type="text" class="input" [ngModel]="movConcepto()" (ngModelChange)="movConcepto.set($event)" />
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="showMovimiento.set(false)">Cancelar</button>
+        <button class="btn btn--primary" [disabled]="savingMov()" (click)="registrarMovimiento()">
+          {{ savingMov() ? 'Guardando...' : 'Registrar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,126 @@
+.dashboard {
+  &__title {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-xl);
+  }
+
+  &__loading {
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: var(--spacing-2xl);
+  }
+
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  &__section {
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  &__section-title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-md);
+  }
+
+  &__empty {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-secondary);
+  }
+}
+
+// ── KPI Card ──
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  position: relative;
+  overflow: hidden;
+
+  &__icon {
+    font-size: 2rem;
+
+    &--primary { }
+    &--success { }
+    &--warning { }
+    &--info { }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__value {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--color-text-primary);
+  }
+
+  &__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  &__bar {
+    height: 6px;
+    background-color: var(--color-border);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: var(--spacing-xs);
+  }
+
+  &__bar-fill {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    transition: width var(--transition-normal);
+    max-width: 100%;
+  }
+}
+
+// ── Table ──
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    text-align: left;
+    padding: 10px var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  th {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  td {
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__placa {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+  }
+
+  tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+
+    :root[data-theme='dark'] & {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+  }
+}

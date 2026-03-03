@@ -1,0 +1,101 @@
+<div class="config">
+  <h1 class="config__title">Configuración</h1>
+
+  @if (loading()) {
+    <div class="config__loading">Cargando...</div>
+  }
+
+  <!-- Datos del parqueadero -->
+  <section class="config__section">
+    <h2 class="config__subtitle">Datos del parqueadero</h2>
+    <div class="card config__form">
+      <label class="form-field">
+        <span class="form-field__label">Nombre comercial</span>
+        <input type="text" class="input" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
+      </label>
+      <label class="form-field">
+        <span class="form-field__label">Dirección</span>
+        <input type="text" class="input" [ngModel]="direccion()" (ngModelChange)="direccion.set($event)" />
+      </label>
+      <label class="form-field">
+        <span class="form-field__label">Teléfono</span>
+        <input type="text" class="input" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" />
+      </label>
+      <div style="display:flex;gap:var(--spacing-sm)">
+        <label class="form-field" style="flex:1">
+          <span class="form-field__label">Horario apertura</span>
+          <input type="time" class="input" [ngModel]="horarioApertura()" (ngModelChange)="horarioApertura.set($event)" />
+        </label>
+        <label class="form-field" style="flex:1">
+          <span class="form-field__label">Horario cierre</span>
+          <input type="time" class="input" [ngModel]="horarioCierre()" (ngModelChange)="horarioCierre.set($event)" />
+        </label>
+      </div>
+      <button class="btn btn--primary" [disabled]="saving()" (click)="guardarConfig()">
+        {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </section>
+
+  <!-- Tipos de vehículo -->
+  <section class="config__section">
+    <div class="config__section-header">
+      <h2 class="config__subtitle">Tipos de vehículo</h2>
+      <button class="btn btn--sm btn--secondary" (click)="showTipo.set(true)">＋ Nuevo</button>
+    </div>
+
+    @if (tipos().length) {
+      <div class="config__chips">
+        @for (t of tipos(); track t.id_tipo_vehiculo) {
+          <span class="chip">{{ t.nombre }}</span>
+        }
+      </div>
+    } @else {
+      <p class="config__empty">No hay tipos configurados.</p>
+    }
+  </section>
+
+  <!-- Capacidad -->
+  <section class="config__section">
+    <h2 class="config__subtitle">Capacidad por tipo</h2>
+    @if (tipos().length) {
+      <div class="card config__capacity">
+        @for (t of tipos(); track t.id_tipo_vehiculo) {
+          <div class="config__cap-row">
+            <span class="config__cap-label">{{ t.nombre }}</span>
+            <input type="number" class="input config__cap-input"
+              [ngModel]="getCapacidadPorTipo(t.id_tipo_vehiculo)"
+              (ngModelChange)="guardarCapacidad(t.id_tipo_vehiculo, $event)"
+              min="0" />
+            <span class="config__cap-suffix">espacios</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="config__empty">Crea tipos de vehículo primero.</p>
+    }
+  </section>
+</div>
+
+@if (showTipo()) {
+  <div class="modal-overlay" (click)="showTipo.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">Nuevo tipo de vehículo</h2>
+        <button class="modal__close" (click)="showTipo.set(false)">✕</button>
+      </div>
+      <div class="modal__body">
+        <label class="form-field"><span class="form-field__label">Nombre *</span>
+          <input type="text" class="input" [ngModel]="tipoNombre()" (ngModelChange)="tipoNombre.set($event)" placeholder="Ej: Carro, Moto" /></label>
+        <label class="form-field"><span class="form-field__label">Descripción</span>
+          <input type="text" class="input" [ngModel]="tipoDesc()" (ngModelChange)="tipoDesc.set($event)" /></label>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="showTipo.set(false)">Cancelar</button>
+        <button class="btn btn--primary" [disabled]="savingTipo() || !tipoNombre().trim()" (click)="crearTipo()">
+          {{ savingTipo() ? 'Creando...' : 'Crear' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

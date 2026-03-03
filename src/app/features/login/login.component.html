@@ -1,0 +1,48 @@
+<div class="login-page">
+  <div class="login-card card card--elevated">
+    <div class="login-card__header">
+      <div class="login-card__icon">🅿️</div>
+      <h1 class="login-card__title">Parqueadero</h1>
+      <p class="login-card__subtitle">Ingrese su token de acceso para continuar</p>
+    </div>
+
+    <form class="login-card__form" (submit)="$event.preventDefault(); onSubmit()">
+      <div class="login-card__field">
+        <label for="token" class="form-label">Token de acceso</label>
+        <input
+          id="token"
+          type="text"
+          class="input"
+          [class.input--error]="error()"
+          placeholder="Pegue aquí su token JWT"
+          [value]="token()"
+          (input)="updateToken($event)"
+          [disabled]="loading()"
+          autocomplete="off"
+        />
+        @if (error()) {
+          <p class="form-error">{{ error() }}</p>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn--primary login-card__submit"
+        [disabled]="loading() || !token().trim()">
+        @if (loading()) {
+          Verificando...
+        } @else {
+          Acceder al parqueadero
+        }
+      </button>
+    </form>
+
+    <div class="login-card__footer">
+      <p>Obtenga su token de acceso desde el panel de administración de EscalApp.</p>
+    </div>
+  </div>
+
+  <button class="theme-toggle" (click)="themeService.toggleTheme()" type="button" aria-label="Cambiar tema">
+    {{ themeService.resolvedTheme() === 'dark' ? '☀️' : '🌙' }}
+  </button>
+</div>

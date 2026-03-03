@@ -1,0 +1,253 @@
+<div class="vehiculos">
+  <!-- Header -->
+  <div class="vehiculos__header">
+    <h1 class="vehiculos__title">Control de Vehículos</h1>
+    <button class="btn btn--primary" (click)="abrirEntrada()">
+      ＋ Registrar entrada
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="vehiculos__tabs">
+    <button class="vehiculos__tab"
+      [class.vehiculos__tab--active]="vista() === 'actuales'"
+      (click)="cambiarVista('actuales')">
+      🚗 Actuales
+    </button>
+    <button class="vehiculos__tab"
+      [class.vehiculos__tab--active]="vista() === 'historial'"
+      (click)="cambiarVista('historial')">
+      📋 Historial
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="vehiculos__filters card">
+    <div class="vehiculos__filter-group">
+      <input type="text"
+        class="input"
+        placeholder="Buscar por placa..."
+        [ngModel]="filtroPlaca()"
+        (ngModelChange)="filtroPlaca.set($event)" />
+
+      @if (vista() === 'historial') {
+        <input type="date"
+          class="input"
+          [ngModel]="filtroDesde()"
+          (ngModelChange)="filtroDesde.set($event)" />
+        <input type="date"
+          class="input"
+          [ngModel]="filtroHasta()"
+          (ngModelChange)="filtroHasta.set($event)" />
+      }
+
+      <button class="btn btn--secondary" (click)="buscar()">
+        Buscar
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="vehiculos__loading">Cargando...</div>
+  }
+
+  <!-- Tabla -->
+  @if (!loading() && vehiculos().length) {
+    <div class="card vehiculos__table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Placa</th>
+            <th>Tipo</th>
+            <th>Entrada</th>
+            @if (vista() === 'actuales') {
+              <th>Tiempo</th>
+              <th>Tarifa</th>
+              <th>Acciones</th>
+            } @else {
+              <th>Salida</th>
+              <th>Cobrado</th>
+              <th>Estado</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of vehiculos(); track v.id_vehiculo) {
+            <tr>
+              <td class="table__placa">{{ v.placa }}</td>
+              <td>{{ v.tipoVehiculo?.nombre ?? '—' }}</td>
+              <td>{{ formatFecha(v.fecha_entrada) }}</td>
+
+              @if (vista() === 'actuales') {
+                <td class="vehiculos__tiempo">{{ tiempoTranscurrido(v.fecha_entrada) }}</td>
+                <td>{{ v.tarifa ? v.tarifa.tipo_cobro + ' $' + v.tarifa.valor : '—' }}</td>
+                <td>
+                  <button class="btn btn--sm btn--success" (click)="abrirSalida(v)">
+                    Dar salida
+                  </button>
+                </td>
+              } @else {
+                <td>{{ v.fecha_salida ? formatFecha(v.fecha_salida) : '—' }}</td>
+                <td>{{ v.valor_cobrado != null ? formatMoneda(v.valor_cobrado) : '—' }}</td>
+                <td>
+                  <span class="badge"
+                    [class.badge--success]="v.estado === 'S'"
+                    [class.badge--warning]="v.estado === 'A'"
+                    [class.badge--danger]="v.estado === 'X'">
+                    {{ v.estado === 'S' ? 'Salió' : v.estado === 'A' ? 'Dentro' : 'Cancelado' }}
+                  </span>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="vehiculos__pagination">
+          <button class="btn btn--sm btn--ghost" [disabled]="page() <= 1" (click)="irPagina(page() - 1)">
+            ‹ Anterior
+          </button>
+          <span class="vehiculos__page-info">
+            Pág. {{ page() }} de {{ totalPages() }} — {{ total() }} registros
+          </span>
+          <button class="btn btn--sm btn--ghost" [disabled]="page() >= totalPages()" (click)="irPagina(page() + 1)">
+            Siguiente ›
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading() && !vehiculos().length) {
+    <div class="vehiculos__empty card">
+      <p>{{ vista() === 'actuales' ? 'No hay vehículos en el parqueadero.' : 'No se encontraron registros.' }}</p>
+    </div>
+  }
+</div>
+
+<!-- ══ Modal Entrada ══ -->
+@if (showEntrada()) {
+  <div class="modal-overlay" (click)="cerrarEntrada()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">Registrar Entrada</h2>
+        <button class="modal__close" (click)="cerrarEntrada()">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <label class="form-field">
+          <span class="form-field__label">Placa *</span>
+          <input type="text"
+            class="input"
+            placeholder="ABC123"
+            [ngModel]="entradaPlaca()"
+            (ngModelChange)="entradaPlaca.set($event)"
+            maxlength="10"
+            style="text-transform: uppercase" />
+        </label>
+
+        <label class="form-field">
+          <span class="form-field__label">Tipo de vehículo *</span>
+          <div class="tipo-picker">
+            @for (t of tiposVehiculo(); track t.id_tipo_vehiculo) {
+              <button
+                type="button"
+                class="tipo-picker__card"
+                [class.tipo-picker__card--selected]="entradaTipo() === t.id_tipo_vehiculo"
+                (click)="entradaTipo.set(t.id_tipo_vehiculo)">
+                <lucide-icon [name]="tipoIcono(t.nombre)" [size]="26" />
+                <span class="tipo-picker__label">{{ t.nombre }}</span>
+              </button>
+            }
+            @if (!tiposVehiculo().length) {
+              <span class="tipo-picker__empty">Cargando tipos…</span>
+            }
+          </div>
+        </label>
+
+        <label class="form-field">
+          <span class="form-field__label">Tarifa</span>
+          <select class="input"
+            [ngModel]="entradaTarifa()"
+            (ngModelChange)="entradaTarifa.set($event ? +$event : null)">
+            <option [value]="null">— Automática —</option>
+            @for (t of tarifasFiltradas(); track t.id_tarifa) {
+              <option [value]="t.id_tarifa">{{ t.tipo_cobro }} — ${{ t.valor }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span class="form-field__label">Observaciones</span>
+          <textarea class="input"
+            rows="2"
+            [ngModel]="entradaObs()"
+            (ngModelChange)="entradaObs.set($event)"></textarea>
+        </label>
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="cerrarEntrada()">Cancelar</button>
+        <button class="btn btn--primary"
+          [disabled]="savingEntrada() || !entradaPlaca().trim() || !entradaTipo()"
+          (click)="guardarEntrada()">
+          {{ savingEntrada() ? 'Guardando...' : 'Registrar entrada' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Modal Salida ══ -->
+@if (showSalida() && vehiculoSalida()) {
+  <div class="modal-overlay" (click)="cerrarSalida()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">Dar Salida</h2>
+        <button class="modal__close" (click)="cerrarSalida()">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="salida-info">
+          <div class="salida-info__row">
+            <span class="salida-info__label">Placa</span>
+            <span class="salida-info__value table__placa">{{ vehiculoSalida()!.placa }}</span>
+          </div>
+          <div class="salida-info__row">
+            <span class="salida-info__label">Tipo</span>
+            <span class="salida-info__value">{{ vehiculoSalida()!.tipoVehiculo?.nombre ?? '—' }}</span>
+          </div>
+          <div class="salida-info__row">
+            <span class="salida-info__label">Entrada</span>
+            <span class="salida-info__value">{{ formatFecha(vehiculoSalida()!.fecha_entrada) }}</span>
+          </div>
+          <div class="salida-info__row">
+            <span class="salida-info__label">Tiempo</span>
+            <span class="salida-info__value vehiculos__tiempo">{{ tiempoTranscurrido(vehiculoSalida()!.fecha_entrada) }}</span>
+          </div>
+        </div>
+
+        <label class="form-field">
+          <span class="form-field__label">Valor a cobrar ($)</span>
+          <input type="number"
+            class="input"
+            [ngModel]="salidaValor()"
+            (ngModelChange)="salidaValor.set($event)"
+            min="0" />
+        </label>
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="cerrarSalida()">Cancelar</button>
+        <button class="btn btn--success"
+          [disabled]="savingSalida()"
+          (click)="guardarSalida()">
+          {{ savingSalida() ? 'Procesando...' : 'Confirmar salida' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

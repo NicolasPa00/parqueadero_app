@@ -1,0 +1,71 @@
+<!-- ═══ Sidebar ═══ -->
+<aside class="sidebar"
+  [class.sidebar--collapsed]="sidebarCollapsed()"
+  [class.sidebar--mobile-open]="mobileMenuOpen()">
+
+  <div class="sidebar__header">
+    <span class="sidebar__brand">
+      <lucide-icon name="square-parking" class="sidebar__brand-icon" [size]="22" />
+      @if (!sidebarCollapsed()) {
+        <span class="sidebar__brand-text">{{ negocioNombre() }}</span>
+      }
+    </span>
+  </div>
+
+  <nav class="sidebar__nav">
+    @for (item of navItems; track item.id) {
+      <a
+        class="sidebar__link"
+        [routerLink]="item.route"
+        routerLinkActive="sidebar__link--active"
+        (click)="closeMobileMenu()"
+        [attr.title]="sidebarCollapsed() ? item.label : null">
+        <lucide-icon [name]="item.icon" class="sidebar__link-icon" [size]="18" />
+        @if (!sidebarCollapsed()) {
+          <span class="sidebar__link-label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar__footer">
+    <button class="sidebar__link sidebar__link--danger" (click)="authService.logout()">
+      <lucide-icon name="log-out" class="sidebar__link-icon" [size]="18" />
+      @if (!sidebarCollapsed()) {
+        <span class="sidebar__link-label">Cerrar sesión</span>
+      }
+    </button>
+  </div>
+</aside>
+
+<!-- ═══ Backdrop mobile ═══ -->
+@if (mobileMenuOpen()) {
+  <div class="backdrop" (click)="closeMobileMenu()"></div>
+}
+
+<!-- ═══ Main content ═══ -->
+<div class="main" [class.main--sidebar-collapsed]="sidebarCollapsed()">
+  <!-- Header -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <button class="btn btn--ghost btn--icon topbar__menu-btn" (click)="toggleMobileMenu()" aria-label="Menú">
+        <lucide-icon name="menu" [size]="20" />
+      </button>
+      <button class="btn btn--ghost btn--icon topbar__collapse-btn" (click)="toggleSidebar()" aria-label="Colapsar sidebar">
+        <lucide-icon [name]="sidebarCollapsed() ? 'chevron-right' : 'chevron-left'" [size]="18" />
+      </button>
+    </div>
+
+    <div class="topbar__right">
+      <button class="btn btn--ghost btn--icon" (click)="themeService.toggleTheme()" aria-label="Cambiar tema">
+        <lucide-icon [name]="themeService.resolvedTheme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
+      </button>
+      <span class="topbar__user">{{ usuarioNombre() }}</span>
+    </div>
+  </header>
+
+  <!-- Page content -->
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

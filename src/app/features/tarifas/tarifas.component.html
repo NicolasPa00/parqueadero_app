@@ -1,0 +1,91 @@
+<div class="tarifas">
+  <div class="tarifas__header">
+    <h1 class="tarifas__title">Tarifas</h1>
+    <button class="btn btn--primary" (click)="abrir()">＋ Nueva tarifa</button>
+  </div>
+
+  @if (loading()) {
+    <div class="tarifas__loading">Cargando...</div>
+  }
+
+  @if (!loading() && tarifas().length) {
+    <div class="card tarifas__table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tipo vehículo</th>
+            <th>Cobro</th>
+            <th>Valor</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tarifas(); track t.id_tarifa) {
+            <tr>
+              <td>{{ t.tipoVehiculo?.nombre ?? '—' }}</td>
+              <td><span class="badge">{{ t.tipo_cobro }}</span></td>
+              <td>{{ formatMoneda(t.valor) }}</td>
+              <td>{{ t.descripcion ?? '—' }}</td>
+              <td class="tarifas__actions">
+                <button class="btn btn--sm btn--ghost" (click)="abrir(t)">Editar</button>
+                <button class="btn btn--sm btn--danger" (click)="eliminar(t.id_tarifa)">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!loading() && !tarifas().length) {
+    <div class="card tarifas__empty">
+      <p>No hay tarifas registradas.</p>
+    </div>
+  }
+</div>
+
+<!-- ══ Modal ══ -->
+@if (showForm()) {
+  <div class="modal-overlay" (click)="cerrar()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">{{ editing() ? 'Editar tarifa' : 'Nueva tarifa' }}</h2>
+        <button class="modal__close" (click)="cerrar()">✕</button>
+      </div>
+      <div class="modal__body">
+        <label class="form-field">
+          <span class="form-field__label">Tipo de vehículo</span>
+          <select class="input" [ngModel]="formTipo()" (ngModelChange)="formTipo.set(+$event)">
+            @for (t of tipos(); track t.id_tipo_vehiculo) {
+              <option [value]="t.id_tipo_vehiculo">{{ t.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Tipo de cobro</span>
+          <select class="input" [ngModel]="formTipoCobro()" (ngModelChange)="formTipoCobro.set($event)">
+            <option value="HORA">Por hora</option>
+            <option value="FRACCION">Fracción</option>
+            <option value="DIA">Por día</option>
+            <option value="MES">Mensual</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Valor ($)</span>
+          <input type="number" class="input" [ngModel]="formValor()" (ngModelChange)="formValor.set($event)" min="0" />
+        </label>
+        <label class="form-field">
+          <span class="form-field__label">Descripción</span>
+          <input type="text" class="input" [ngModel]="formDescripcion()" (ngModelChange)="formDescripcion.set($event)" />
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="cerrar()">Cancelar</button>
+        <button class="btn btn--primary" [disabled]="saving()" (click)="guardar()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

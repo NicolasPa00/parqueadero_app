@@ -1,0 +1,106 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
+import { AuthService } from '../../auth/data-access/auth.service';
+import { Tarifa, TipoVehiculo } from '../../core/models/parqueadero.models';
+
+@Component({
+  selector: 'app-tarifas',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './tarifas.component.html',
+  styleUrl: './tarifas.component.scss',
+})
+export class TarifasComponent implements OnInit {
+  private readonly svc = inject(ParqueaderoService);
+  private readonly auth = inject(AuthService);
+
+  tarifas = signal<Tarifa[]>([]);
+  tipos = signal<TipoVehiculo[]>([]);
+  loading = signal(false);
+
+  showForm = signal(false);
+  editing = signal<Tarifa | null>(null);
+  formTipo = signal<number>(0);
+  formTipoCobro = signal<'HORA' | 'FRACCION' | 'DIA' | 'MES'>('HORA');
+  formValor = signal<number>(0);
+  formDescripcion = signal('');
+  saving = signal(false);
+
+  private get idNeg(): number {
+    return this.auth.negocio()?.id_negocio ?? 0;
+  }
+
+  ngOnInit(): void {
+    this.load();
+    this.loadTipos();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.svc.getTarifas(this.idNeg).subscribe({
+      next: res => {
+        if (res.data) this.tarifas.set(res.data);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  loadTipos(): void {
+    this.svc.getTiposVehiculo(this.idNeg).subscribe({
+      next: res => { if (res.data) this.tipos.set(res.data); },
+    });
+  }
+
+  abrir(tarifa?: Tarifa): void {
+    if (tarifa) {
+      this.editing.set(tarifa);
+      this.formTipo.set(tarifa.id_tipo_vehiculo);
+      this.formTipoCobro.set(tarifa.tipo_cobro);
+      this.formValor.set(tarifa.valor);
+      this.formDescripcion.set(tarifa.descripcion ?? '');
+    } else {
+      this.editing.set(null);
+      this.formTipo.set(this.tipos().length ? this.tipos()[0].id_tipo_vehiculo : 0);
+      this.formTipoCobro.set('HORA');
+      this.formValor.set(0);
+      this.formDescripcion.set('');
+    }
+    this.showForm.set(true);
+  }
+
+  cerrar(): void {
+    this.showForm.set(false);
+  }
+
+  guardar(): void {
+    this.saving.set(true);
+    const data = {
+      id_tipo_vehiculo: this.formTipo(),
+      id_negocio: this.idNeg,
+      tipo_cobro: this.formTipoCobro(),
+      valor: this.formValor(),
+      descripcion: this.formDescripcion() || undefined,
+    };
+
+    const obs = this.editing()
+      ? this.svc.updateTarifa(this.editing()!.id_tarifa, data)
+      : this.svc.createTarifa(data);
+
+    obs.subscribe({
+      next: () => { this.saving.set(false); this.cerrar(); this.load(); },
+      error: () => this.saving.set(false),
+    });
+  }
+
+  eliminar(id: number): void {
+    if (!confirm('¿Eliminar esta tarifa?')) return;
+    this.svc.deleteTarifa(id, this.idNeg).subscribe({ next: () => this.load() });
+  }
+
+  formatMoneda(v: number): string {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+  }
+}

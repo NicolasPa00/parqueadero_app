@@ -1,0 +1,82 @@
+<div class="abonados">
+  <div class="abonados__header">
+    <h1 class="abonados__title">Abonados</h1>
+    <button class="btn btn--primary" (click)="abrir()">＋ Nuevo abonado</button>
+  </div>
+
+  @if (loading()) {
+    <div class="abonados__loading">Cargando...</div>
+  }
+
+  @if (!loading() && abonados().length) {
+    <div class="card abonados__table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Placa</th>
+            <th>Tipo</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Mensualidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of abonados(); track a.id_abonado) {
+            <tr>
+              <td>{{ a.nombre }}</td>
+              <td class="table__placa">{{ a.placa }}</td>
+              <td>{{ a.tipoVehiculo?.nombre ?? '—' }}</td>
+              <td>{{ a.fecha_inicio ? a.fecha_inicio.split('T')[0] : '—' }}</td>
+              <td>{{ a.fecha_fin ? a.fecha_fin.split('T')[0] : '—' }}</td>
+              <td>{{ formatMoneda(a.valor_mensualidad) }}</td>
+              <td><button class="btn btn--sm btn--ghost" (click)="abrir(a)">Editar</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!loading() && !abonados().length) {
+    <div class="card abonados__empty"><p>No hay abonados registrados.</p></div>
+  }
+</div>
+
+@if (showForm()) {
+  <div class="modal-overlay" (click)="cerrar()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2 class="modal__title">{{ editing() ? 'Editar' : 'Nuevo' }} abonado</h2>
+        <button class="modal__close" (click)="cerrar()">✕</button>
+      </div>
+      <div class="modal__body">
+        <label class="form-field"><span class="form-field__label">Nombre *</span>
+          <input type="text" class="input" [ngModel]="formNombre()" (ngModelChange)="formNombre.set($event)" /></label>
+        <label class="form-field"><span class="form-field__label">Documento</span>
+          <input type="text" class="input" [ngModel]="formDocumento()" (ngModelChange)="formDocumento.set($event)" /></label>
+        <label class="form-field"><span class="form-field__label">Teléfono</span>
+          <input type="text" class="input" [ngModel]="formTelefono()" (ngModelChange)="formTelefono.set($event)" /></label>
+        <label class="form-field"><span class="form-field__label">Placa *</span>
+          <input type="text" class="input" style="text-transform:uppercase" [ngModel]="formPlaca()" (ngModelChange)="formPlaca.set($event)" maxlength="10" /></label>
+        <label class="form-field"><span class="form-field__label">Tipo vehículo</span>
+          <select class="input" [ngModel]="formTipo()" (ngModelChange)="formTipo.set(+$event)">
+            @for (t of tipos(); track t.id_tipo_vehiculo) { <option [value]="t.id_tipo_vehiculo">{{ t.nombre }}</option> }
+          </select></label>
+        <div style="display:flex;gap:var(--spacing-sm)">
+          <label class="form-field" style="flex:1"><span class="form-field__label">Fecha inicio</span>
+            <input type="date" class="input" [ngModel]="formInicio()" (ngModelChange)="formInicio.set($event)" /></label>
+          <label class="form-field" style="flex:1"><span class="form-field__label">Fecha fin</span>
+            <input type="date" class="input" [ngModel]="formFin()" (ngModelChange)="formFin.set($event)" /></label>
+        </div>
+        <label class="form-field"><span class="form-field__label">Valor mensualidad ($)</span>
+          <input type="number" class="input" [ngModel]="formValor()" (ngModelChange)="formValor.set($event)" min="0" /></label>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="cerrar()">Cancelar</button>
+        <button class="btn btn--primary" [disabled]="saving()" (click)="guardar()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+      </div>
+    </div>
+  </div>
+}

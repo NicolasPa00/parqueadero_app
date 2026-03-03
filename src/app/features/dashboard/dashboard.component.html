@@ -1,0 +1,77 @@
+<div class="dashboard">
+  <h1 class="dashboard__title">Dashboard</h1>
+
+  @if (loading()) {
+    <p class="dashboard__loading">Cargando datos...</p>
+  } @else {
+    <!-- KPI Cards -->
+    <div class="dashboard__kpis">
+      <div class="kpi-card card">
+        <div class="kpi-card__icon kpi-card__icon--primary">🚗</div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__value">{{ kpis().vehiculos_actuales }}</span>
+          <span class="kpi-card__label">Vehículos actuales</span>
+        </div>
+      </div>
+
+      <div class="kpi-card card">
+        <div class="kpi-card__icon kpi-card__icon--info">📊</div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__value">{{ kpis().ocupacion_porcentaje }}%</span>
+          <span class="kpi-card__label">Ocupación</span>
+        </div>
+        <div class="kpi-card__bar">
+          <div class="kpi-card__bar-fill" [style.width.%]="kpis().ocupacion_porcentaje"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card card">
+        <div class="kpi-card__icon kpi-card__icon--success">💰</div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__value">{{ kpis().ingresos_hoy | number:'1.0-0' }}</span>
+          <span class="kpi-card__label">Ingresos hoy (COP)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card card">
+        <div class="kpi-card__icon kpi-card__icon--warning">🔄</div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__value">{{ kpis().entradas_hoy }} / {{ kpis().salidas_hoy }}</span>
+          <span class="kpi-card__label">Entradas / Salidas hoy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimos vehículos -->
+    <div class="dashboard__section">
+      <h2 class="dashboard__section-title">Últimos vehículos ingresados</h2>
+
+      @if (ultimosVehiculos().length === 0) {
+        <div class="card dashboard__empty">
+          <p>No hay vehículos en el parqueadero actualmente.</p>
+        </div>
+      } @else {
+        <div class="card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Hora entrada</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of ultimosVehiculos(); track v.id_vehiculo) {
+                <tr>
+                  <td class="table__placa">{{ v.placa }}</td>
+                  <td>{{ v.tipo }}</td>
+                  <td>{{ v.fecha_entrada | date:'shortTime' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

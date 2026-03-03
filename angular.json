@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "eada21f6-1d59-4a6d-ab96-0173a4bfb6bf"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -75,7 +76,10 @@
               "buildTarget": "parqueadero_app:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4003
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"

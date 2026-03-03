@@ -1,0 +1,24 @@
+.abonados {
+  &__header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-md); margin-bottom: var(--spacing-xl); }
+  &__title { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text-primary); margin: 0; }
+  &__loading, &__empty { text-align: center; padding: var(--spacing-2xl); color: var(--color-text-secondary); }
+  &__table-wrap { overflow-x: auto; padding: 0; }
+}
+.table {
+  width: 100%; border-collapse: collapse;
+  th, td { text-align: left; padding: 10px var(--spacing-md); font-size: var(--font-size-sm); white-space: nowrap; }
+  th { color: var(--color-text-secondary); font-weight: 600; border-bottom: 2px solid var(--color-border); }
+  td { color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); }
+  &__placa { font-weight: 700; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+  tbody tr:hover { background: rgba(0,0,0,0.02); }
+}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: var(--spacing-md); }
+.modal {
+  background: var(--color-surface); border-radius: var(--radius-lg); width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+  &__header { display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-lg); border-bottom: 1px solid var(--color-border); }
+  &__title { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-text-primary); margin: 0; }
+  &__close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--color-text-secondary); padding: var(--spacing-xs); border-radius: var(--radius-sm); &:hover { background: var(--color-border); } }
+  &__body { padding: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md); max-height: 65vh; overflow-y: auto; }
+  &__footer { display: flex; justify-content: flex-end; gap: var(--spacing-sm); padding: var(--spacing-lg); border-top: 1px solid var(--color-border); }
+}
+.form-field { display: flex; flex-direction: column; gap: 4px; &__label { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-secondary); } }

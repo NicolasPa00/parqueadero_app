@@ -1,0 +1,11 @@
+.page-stub {
+  &__title { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text-primary); margin: 0 0 var(--spacing-xl); }
+  &__card {
+    padding: var(--spacing-2xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+    p { font-size: var(--font-size-lg); margin-bottom: var(--spacing-md); }
+    ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--spacing-sm); }
+    li { font-size: var(--font-size-sm); }
+  }
+}

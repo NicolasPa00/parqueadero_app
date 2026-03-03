@@ -1,0 +1,84 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg);
+  position: relative;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+
+  &__header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  &__icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  &__title {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-xs);
+  }
+
+  &__subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__submit {
+    width: 100%;
+  }
+
+  &__footer {
+    margin-top: var(--spacing-lg);
+    text-align: center;
+
+    p {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+  }
+}
+
+.theme-toggle {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--color-surface-elevated);
+  }
+}
