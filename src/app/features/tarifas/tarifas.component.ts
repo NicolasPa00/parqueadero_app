@@ -1,6 +1,15 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import {
+  LucideAngularModule,
+  LUCIDE_ICONS,
+  LucideIconProvider,
+  Car,
+  Bike,
+  Truck,
+  Bus,
+} from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { Tarifa, TipoVehiculo } from '../../core/models/parqueadero.models';
@@ -8,9 +17,16 @@ import { Tarifa, TipoVehiculo } from '../../core/models/parqueadero.models';
 @Component({
   selector: 'app-tarifas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './tarifas.component.html',
   styleUrl: './tarifas.component.scss',
+  providers: [
+    {
+      provide: LUCIDE_ICONS,
+      multi: true,
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus }),
+    },
+  ],
 })
 export class TarifasComponent implements OnInit {
   private readonly svc = inject(ParqueaderoService);
@@ -27,6 +43,21 @@ export class TarifasComponent implements OnInit {
   formValor = signal<number>(0);
   formDescripcion = signal('');
   saving = signal(false);
+
+  readonly TIPO_ICON: Record<string, string> = {
+    'automóvil':   'car',
+    'motocicleta': 'bike',
+    'bicicleta':   'bike',
+    'scuter':      'bike',
+    'camioneta':   'truck',
+    'camión':      'truck',
+    'minibús':     'bus',
+    'bus':         'bus',
+  };
+
+  tipoIcono(nombre: string): string {
+    return this.TIPO_ICON[nombre.toLowerCase()] ?? 'car';
+  }
 
   private get idNeg(): number {
     return this.auth.negocio()?.id_negocio ?? 0;

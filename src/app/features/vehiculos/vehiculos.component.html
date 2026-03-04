@@ -178,6 +178,13 @@
               <option [value]="t.id_tarifa">{{ t.tipo_cobro }} — ${{ t.valor }}</option>
             }
           </select>
+          @if (sinTarifas()) {
+            <div class="tarifa-warning">
+              <lucide-icon name="triangle-alert" [size]="14" />
+              Este tipo de vehículo no tiene tarifas. Ve a
+              <strong>Tarifas</strong> para crear una antes de registrar.
+            </div>
+          }
         </label>
 
         <label class="form-field">
@@ -230,14 +237,23 @@
           </div>
         </div>
 
-        <label class="form-field">
-          <span class="form-field__label">Valor a cobrar ($)</span>
-          <input type="number"
-            class="input"
-            [ngModel]="salidaValor()"
-            (ngModelChange)="salidaValor.set($event)"
-            min="0" />
-        </label>
+        <!-- Valor calculado — solo lectura -->
+        <div class="salida-valor">
+          <span class="salida-valor__label">
+            @if (vehiculoSalida()!.tarifa) {
+              Valor a cobrar
+              <span class="salida-valor__cobro">({{ vehiculoSalida()!.tarifa!.tipo_cobro }})</span>
+            } @else {
+              Sin tarifa asignada
+            }
+          </span>
+          <span class="salida-valor__amount">
+            {{ formatMoneda(salidaValorCalculado()) }}
+          </span>
+          @if (!vehiculoSalida()!.tarifa) {
+            <p class="salida-valor__hint">El cobro se registrará en $0. Asigna una tarifa al registrar la entrada.</p>
+          }
+        </div>
       </div>
 
       <div class="modal__footer">

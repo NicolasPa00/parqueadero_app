@@ -9,6 +9,7 @@ import {
   Bike,
   Truck,
   Bus,
+  TriangleAlert,
 } from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
@@ -26,7 +27,7 @@ type Vista = 'actuales' | 'historial';
     {
       provide: LUCIDE_ICONS,
       multi: true,
-      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus }),
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert }),
     },
   ],
 })
@@ -70,11 +71,34 @@ export class VehiculosComponent implements OnInit {
     return this.tarifas().filter(t => t.id_tipo_vehiculo === tipo);
   });
 
+  // Avisa si el tipo seleccionado no tiene ninguna tarifa registrada
+  sinTarifas = computed(() => {
+    const tipo = this.entradaTipo();
+    return tipo !== null && this.tarifas().length > 0 && this.tarifasFiltradas().length === 0;
+  });
+
+  // Valor de salida calculado automáticamente según tarifa + tiempo
+  salidaValorCalculado = computed(() => {
+    const v = this.vehiculoSalida();
+    if (!v?.tarifa) return 0;
+    const diffMs = Math.max(0, Date.now() - this.toUTC(v.fecha_entrada).getTime());
+    const mins  = Math.max(1, Math.floor(diffMs / 60000));
+    const valor = Number(v.tarifa.valor);
+    switch (v.tarifa.tipo_cobro) {
+      case 'HORA':    return Math.ceil(mins / 60)        * valor;
+      case 'FRACCION':return Math.ceil(mins / 30)        * valor;
+      case 'DIA':     return Math.ceil(mins / (60 * 24)) * valor;
+      case 'MES':     return valor;
+      default:        return 0;
+    }
+  });
+
   // ── Tipo de vehículo → ícono Lucide ──
   readonly TIPO_ICON: Record<string, string> = {
     'automóvil':   'car',
     'motocicleta': 'bike',
     'bicicleta':   'bike',
+    'scuter':      'bike',
     'camioneta':   'truck',
     'camión':      'truck',
     'minibús':     'bus',
@@ -207,7 +231,6 @@ export class VehiculosComponent implements OnInit {
   // ── Salida ──
   abrirSalida(v: Vehiculo): void {
     this.vehiculoSalida.set(v);
-    this.salidaValor.set(v.tarifa?.valor ?? 0);
     this.showSalida.set(true);
   }
 
@@ -221,7 +244,7 @@ export class VehiculosComponent implements OnInit {
     if (!v) return;
 
     this.savingSalida.set(true);
-    this.svc.registrarSalida(v.id_vehiculo, this.idNeg, this.salidaValor()).subscribe({
+    this.svc.registrarSalida(v.id_vehiculo, this.idNeg, this.salidaValorCalculado()).subscribe({
       next: () => {
         this.savingSalida.set(false);
         this.cerrarSalida();
@@ -232,22 +255,34 @@ export class VehiculosComponent implements OnInit {
   }
 
   // ── Helpers ──
+
+  /**
+   * Normaliza una fecha del API (puede venir sin indicador de zona) a un Date UTC correcto.
+   * Sequelize retorna TIMESTAMP sin 'Z'; los browsers lo interpretan como hora local
+   * en lugar de UTC, causando un desfase de ±5 horas en Colombia (COT = UTC-5).
+   */
+  private toUTC(fecha: string): Date {
+    const s = String(fecha);
+    // Si ya trae info de zona (‘Z’ o ‘+HH:MM’) no hacemos nada
+    if (s.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(s)) return new Date(s);
+    // Normalizamos: espacio → 'T', y añadimos 'Z' para forzar lectura UTC
+    return new Date(s.replace(' ', 'T') + 'Z');
+  }
+
   tiempoTranscurrido(fecha: string): string {
-    const diff = Date.now() - new Date(fecha).getTime();
-    const mins = Math.floor(diff / 60000);
+    const diffMs = Date.now() - this.toUTC(fecha).getTime();
+    const mins = Math.floor(Math.abs(diffMs) / 60000);
     if (mins < 60) return `${mins} min`;
     const hrs = Math.floor(mins / 60);
-    const m = mins % 60;
-    return `${hrs}h ${m}m`;
+    const m   = mins % 60;
+    return `${hrs}h ${m.toString().padStart(2, '0')}m`;
   }
 
   formatFecha(fecha: string): string {
-    return new Date(fecha).toLocaleString('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return this.toUTC(fecha).toLocaleString('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+      timeZone: 'America/Bogota',
     });
   }
 

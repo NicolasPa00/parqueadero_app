@@ -1,5 +1,14 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
+import {
+  LucideAngularModule,
+  LUCIDE_ICONS,
+  LucideIconProvider,
+  Car,
+  Gauge,
+  Banknote,
+  ArrowLeftRight,
+} from 'lucide-angular';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { DashboardKpis, UltimoVehiculo } from '../../core/models/parqueadero.models';
@@ -7,9 +16,16 @@ import { DashboardKpis, UltimoVehiculo } from '../../core/models/parqueadero.mod
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe, DatePipe, LucideAngularModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
+  providers: [
+    {
+      provide: LUCIDE_ICONS,
+      multi: true,
+      useValue: new LucideIconProvider({ Car, Gauge, Banknote, ArrowLeftRight }),
+    },
+  ],
 })
 export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);

@@ -7,7 +7,9 @@
     <!-- KPI Cards -->
     <div class="dashboard__kpis">
       <div class="kpi-card card">
-        <div class="kpi-card__icon kpi-card__icon--primary">🚗</div>
+        <div class="kpi-card__icon kpi-card__icon--primary">
+          <lucide-icon name="car" [size]="22" />
+        </div>
         <div class="kpi-card__body">
           <span class="kpi-card__value">{{ kpis().vehiculos_actuales }}</span>
           <span class="kpi-card__label">Vehículos actuales</span>
@@ -15,7 +17,9 @@
       </div>
 
       <div class="kpi-card card">
-        <div class="kpi-card__icon kpi-card__icon--info">📊</div>
+        <div class="kpi-card__icon kpi-card__icon--info">
+          <lucide-icon name="gauge" [size]="22" />
+        </div>
         <div class="kpi-card__body">
           <span class="kpi-card__value">{{ kpis().ocupacion_porcentaje }}%</span>
           <span class="kpi-card__label">Ocupación</span>
@@ -26,7 +30,9 @@
       </div>
 
       <div class="kpi-card card">
-        <div class="kpi-card__icon kpi-card__icon--success">💰</div>
+        <div class="kpi-card__icon kpi-card__icon--success">
+          <lucide-icon name="banknote" [size]="22" />
+        </div>
         <div class="kpi-card__body">
           <span class="kpi-card__value">{{ kpis().ingresos_hoy | number:'1.0-0' }}</span>
           <span class="kpi-card__label">Ingresos hoy (COP)</span>
@@ -34,7 +40,9 @@
       </div>
 
       <div class="kpi-card card">
-        <div class="kpi-card__icon kpi-card__icon--warning">🔄</div>
+        <div class="kpi-card__icon kpi-card__icon--warning">
+          <lucide-icon name="arrow-left-right" [size]="22" />
+        </div>
         <div class="kpi-card__body">
           <span class="kpi-card__value">{{ kpis().entradas_hoy }} / {{ kpis().salidas_hoy }}</span>
           <span class="kpi-card__label">Entradas / Salidas hoy</span>
@@ -65,7 +73,7 @@
                 <tr>
                   <td class="table__placa">{{ v.placa }}</td>
                   <td>{{ v.tipo }}</td>
-                  <td>{{ v.fecha_entrada | date:'shortTime' }}</td>
+                  <td>{{ v.fecha_entrada | date:'shortTime':'America/Bogota' }}</td>
                 </tr>
               }
             </tbody>

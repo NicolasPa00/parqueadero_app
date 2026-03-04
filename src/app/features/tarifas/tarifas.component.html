@@ -56,11 +56,21 @@
       <div class="modal__body">
         <label class="form-field">
           <span class="form-field__label">Tipo de vehículo</span>
-          <select class="input" [ngModel]="formTipo()" (ngModelChange)="formTipo.set(+$event)">
+          <div class="tipo-picker">
             @for (t of tipos(); track t.id_tipo_vehiculo) {
-              <option [value]="t.id_tipo_vehiculo">{{ t.nombre }}</option>
+              <button
+                type="button"
+                class="tipo-picker__card"
+                [class.tipo-picker__card--selected]="formTipo() === t.id_tipo_vehiculo"
+                (click)="formTipo.set(t.id_tipo_vehiculo)">
+                <lucide-icon [name]="tipoIcono(t.nombre)" [size]="26" />
+                <span class="tipo-picker__label">{{ t.nombre }}</span>
+              </button>
             }
-          </select>
+            @if (!tipos().length) {
+              <span class="tipo-picker__empty">Cargando tipos…</span>
+            }
+          </div>
         </label>
         <label class="form-field">
           <span class="form-field__label">Tipo de cobro</span>
