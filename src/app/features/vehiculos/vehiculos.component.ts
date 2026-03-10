@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,10 +10,12 @@ import {
   Truck,
   Bus,
   TriangleAlert,
+  ScanLine,
 } from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { Vehiculo, TipoVehiculo, Tarifa } from '../../core/models/parqueadero.models';
+import { PrintService } from '../../core/services/print.service';
+import { Vehiculo, VehiculoConFactura, TipoVehiculo, Tarifa } from '../../core/models/parqueadero.models';
 
 type Vista = 'actuales' | 'historial';
 
@@ -27,13 +29,54 @@ type Vista = 'actuales' | 'historial';
     {
       provide: LUCIDE_ICONS,
       multi: true,
-      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert }),
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert, ScanLine }),
     },
   ],
 })
-export class VehiculosComponent implements OnInit {
-  private readonly svc = inject(ParqueaderoService);
+export class VehiculosComponent implements OnInit, OnDestroy {
+  private readonly svc  = inject(ParqueaderoService);
   private readonly auth = inject(AuthService);
+  private readonly print = inject(PrintService);
+
+  // ── Barcode scanner (keyboard-wedge) ──
+  // Acumula caracteres que llegan rápido (< 80 ms entre teclas = escáner)
+  private _scanBuffer = '';
+  private _scanLastKey = 0;
+  private _scanTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly SCAN_DEBOUNCE = 80; // ms
+
+  scanInput   = signal('');
+  scanLoading = signal(false);
+  scanError   = signal('');
+
+  @ViewChild('scanInputRef') scanInputRef?: ElementRef<HTMLInputElement>;
+
+  /** Listener global para capturar el escáner cuando ningún input tiene foco */
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKey(e: KeyboardEvent): void {
+    const tag = (e.target as HTMLElement)?.tagName;
+    // Si el foco está en el input manual del escáner no procesamos dos veces
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    // No procesar si hay un modal abierto
+    if (this.showEntrada() || this.showSalida()) return;
+
+    const now = Date.now();
+    if (e.key === 'Enter') {
+      if (this._scanBuffer.length >= 3) {
+        this.procesarScan(this._scanBuffer.toUpperCase());
+      }
+      this._scanBuffer = '';
+      return;
+    }
+    if (e.key.length === 1) {
+      if (now - this._scanLastKey > this.SCAN_DEBOUNCE && this._scanBuffer.length > 0) {
+        // Tiempo entre teclas demasiado largo → era escritura manual, descartar
+        this._scanBuffer = '';
+      }
+      this._scanBuffer += e.key;
+      this._scanLastKey = now;
+    }
+  }
 
   // ── State ──
   vista = signal<Vista>('actuales');
@@ -117,6 +160,10 @@ export class VehiculosComponent implements OnInit {
     this.loadTipos();
     this.loadTarifas();
     this.loadVehiculos();
+  }
+
+  ngOnDestroy(): void {
+    if (this._scanTimer) clearTimeout(this._scanTimer);
   }
 
   // ── Data loading ──
@@ -208,7 +255,7 @@ export class VehiculosComponent implements OnInit {
 
   guardarEntrada(): void {
     const placa = this.entradaPlaca().trim().toUpperCase();
-    const tipo = this.entradaTipo();
+    const tipo  = this.entradaTipo();
     if (!placa || !tipo) return;
 
     this.savingEntrada.set(true);
@@ -219,10 +266,14 @@ export class VehiculosComponent implements OnInit {
       id_tarifa: this.entradaTarifa() ?? undefined,
       observaciones: this.entradaObs() || undefined,
     }).subscribe({
-      next: () => {
+      next: (res) => {
         this.savingEntrada.set(false);
         this.cerrarEntrada();
         this.loadVehiculos();
+        // Imprimir recibo de entrada
+        if (res.data?.id_factura) {
+          this.print.imprimirEntrada(res.data);
+        }
       },
       error: () => this.savingEntrada.set(false),
     });
@@ -245,12 +296,45 @@ export class VehiculosComponent implements OnInit {
 
     this.savingSalida.set(true);
     this.svc.registrarSalida(v.id_vehiculo, this.idNeg, this.salidaValorCalculado()).subscribe({
-      next: () => {
+      next: (res) => {
         this.savingSalida.set(false);
         this.cerrarSalida();
         this.loadVehiculos();
+        // Imprimir recibo de salida
+        if (res.data?.id_factura) {
+          this.print.imprimirSalida(res.data);
+        }
       },
       error: () => this.savingSalida.set(false),
+    });
+  }
+
+  /** Disparado por el input de escáner manual (campo visible en página) */
+  onScanManual(e: Event): void {
+    if ((e as KeyboardEvent).key !== 'Enter') return;
+    const placa = this.scanInput().trim().toUpperCase();
+    if (placa.length < 3) return;
+    this.procesarScan(placa);
+    this.scanInput.set('');
+  }
+
+  private procesarScan(placa: string): void {
+    if (this.scanLoading()) return; // Evitar doble escaneo
+    this.scanError.set('');
+    this.scanLoading.set(true);
+    this.svc.buscarVehiculoActivo(placa, this.idNeg).subscribe({
+      next: (res) => {
+        this.scanLoading.set(false);
+        if (res.data) {
+          this.abrirSalida(res.data);
+        } else {
+          this.scanError.set(`No hay vehículo activo con placa ${placa}`);
+        }
+      },
+      error: () => {
+        this.scanLoading.set(false);
+        this.scanError.set(`Placa ${placa} no encontrada en el parqueadero`);
+      },
     });
   }
 

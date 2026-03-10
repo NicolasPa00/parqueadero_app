@@ -9,6 +9,8 @@ import {
   Tarifa,
   Vehiculo,
   VehiculosPaginados,
+  VehiculoConFactura,
+  Factura,
   Capacidad,
   Abonado,
   Caja,
@@ -35,15 +37,40 @@ export class ParqueaderoService {
     id_negocio: number;
     id_tarifa?: number;
     observaciones?: string;
-  }): Observable<ApiResponse<Vehiculo>> {
-    return this.http.post<ApiResponse<Vehiculo>>(`${this.api}/vehiculos/entrada`, data);
+  }): Observable<ApiResponse<VehiculoConFactura>> {
+    return this.http.post<ApiResponse<VehiculoConFactura>>(`${this.api}/vehiculos/entrada`, data);
   }
 
-  registrarSalida(idVehiculo: number, idNegocio: number, valorCobrado: number): Observable<ApiResponse<Vehiculo>> {
-    return this.http.put<ApiResponse<Vehiculo>>(`${this.api}/vehiculos/${idVehiculo}/salida`, {
+  registrarSalida(idVehiculo: number, idNegocio: number, valorCobrado: number): Observable<ApiResponse<VehiculoConFactura>> {
+    return this.http.put<ApiResponse<VehiculoConFactura>>(`${this.api}/vehiculos/${idVehiculo}/salida`, {
       id_negocio: idNegocio,
       valor_cobrado: valorCobrado,
     });
+  }
+
+  /** Busca un vehículo activo por placa (para escaner de barras) */
+  buscarVehiculoActivo(placa: string, idNegocio: number): Observable<ApiResponse<Vehiculo>> {
+    return this.http.get<ApiResponse<Vehiculo>>(`${this.api}/vehiculos/buscar`, {
+      params: { placa, id_negocio: idNegocio },
+    });
+  }
+
+  /** Costo estimado en tiempo real para un vehículo dentro del parqueadero */
+  calcularCosto(idVehiculo: number, idNegocio: number): Observable<ApiResponse<{ costo: number; tarifa: { tipo_cobro: string; valor: number } | null }>> {
+    return this.http.get<ApiResponse<any>>(`${this.api}/vehiculos/${idVehiculo}/calcular-costo`, {
+      params: { id_negocio: idNegocio },
+    });
+  }
+
+  getFactura(idFactura: number, idNegocio: number): Observable<ApiResponse<Factura>> {
+    return this.http.get<ApiResponse<Factura>>(`${this.api}/facturas/${idFactura}`, {
+      params: { id_negocio: idNegocio },
+    });
+  }
+
+  /** Devuelve la URL del recibo HTML (para abrir en nueva pestaña e imprimir) */
+  facturaHtmlUrl(idFactura: number, idNegocio: number, conSalida = false): string {
+    return `${this.api}/facturas/${idFactura}/html?id_negocio=${idNegocio}&con_salida=${conSalida}`;
   }
 
   getVehiculosActuales(idNegocio: number, page = 1, placa?: string): Observable<ApiResponse<VehiculosPaginados>> {

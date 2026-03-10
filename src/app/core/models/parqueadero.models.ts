@@ -125,6 +125,30 @@ export interface Capacidad {
   tipoVehiculo?: { nombre: string };
 }
 
+// ── Factura ──
+export interface Factura {
+  id_factura:      number;
+  id_negocio:      number;
+  numero_factura:  string;
+  id_vehiculo?:    number;
+  placa?:          string;
+  id_tipo_vehiculo?: number;
+  id_tarifa?:      number;
+  tipo_cobro?:     string;
+  valor_unitario?: number;
+  valor_total?:    number;
+  estado:          string; // A=Abierta C=Cerrada X=Anulada
+  fecha_entrada?:  string;
+  fecha_cierre?:   string;
+  fecha_creacion:  string;
+}
+
+// Extension of Vehiculo that includes factura info returned on entry/exit
+export interface VehiculoConFactura extends Vehiculo {
+  id_factura?:     number;
+  numero_factura?: string;
+}
+
 // ── Abonado ──
 export interface Abonado {
   id_abonado: number;

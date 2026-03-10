@@ -7,6 +7,29 @@
     </button>
   </div>
 
+  <!-- ── Barra de escáner ── -->
+  @if (vista() === 'actuales') {
+    <div class="scanner-bar" [class.scanner-bar--loading]="scanLoading()">
+      <lucide-icon name="scan-line" [size]="18" />
+      <input
+        #scanInputRef
+        type="text"
+        class="scanner-bar__input"
+        placeholder="Escanear placa o código del tiquete..."
+        autocomplete="off"
+        spellcheck="false"
+        [ngModel]="scanInput()"
+        (ngModelChange)="scanInput.set($event)"
+        (keydown)="onScanManual($event)" />
+      @if (scanLoading()) {
+        <span class="scanner-bar__status">Buscando...</span>
+      }
+    </div>
+    @if (scanError()) {
+      <div class="scanner-bar__error">⚠ {{ scanError() }}</div>
+    }
+  }
+
   <!-- Tabs -->
   <div class="vehiculos__tabs">
     <button class="vehiculos__tab"

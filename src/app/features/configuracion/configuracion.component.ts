@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule, LUCIDE_ICONS, LucideIconProvider, Car, Bike, Truck, Bus, TriangleAlert, CircleX } from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { ConfiguracionParqueadero, TipoVehiculo, Capacidad } from '../../core/models/parqueadero.models';
@@ -8,7 +9,14 @@ import { ConfiguracionParqueadero, TipoVehiculo, Capacidad } from '../../core/mo
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
+  providers: [
+    {
+      provide: LUCIDE_ICONS,
+      multi: true,
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert, CircleX }),
+    },
+  ],
   templateUrl: './configuracion.component.html',
   styleUrl: './configuracion.component.scss',
 })
@@ -103,5 +111,20 @@ export class ConfiguracionComponent implements OnInit {
 
   getCapacidadPorTipo(idTipo: number): number {
     return this.capacidades().find(c => c.id_tipo_vehiculo === idTipo)?.espacios_total ?? 0;
+  }
+
+  readonly TIPO_ICON: Record<string, string> = {
+    'automóvil':   'car',
+    'motocicleta': 'bike',
+    'bicicleta':   'bike',
+    'scuter':      'bike',
+    'camioneta':   'truck',
+    'camión':      'truck',
+    'minibús':     'bus',
+    'bus':         'bus',
+  };
+
+  tipoIcono(nombre: string): string {
+    return this.TIPO_ICON[nombre.toLowerCase()] ?? 'car';
   }
 }

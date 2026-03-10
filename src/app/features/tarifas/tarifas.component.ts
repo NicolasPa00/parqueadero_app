@@ -47,12 +47,14 @@ export class TarifasComponent implements OnInit {
   formError = signal<string>('');
   saving = signal(false);
 
-  // Computed: detecta si el tipo seleccionado ya tiene una tarifa activa
+  // Computed: detecta si ya existe una tarifa con el MISMO tipo de vehículo Y MISMO tipo de cobro
   tieneTarifaEnForm = computed(() => {
     const idTipo = this.formTipo();
+    const tipoCobro = this.formTipoCobro();
     const isEditing = !!this.editing();
     return this.tarifas().some(t => 
       t.id_tipo_vehiculo === idTipo && 
+      t.tipo_cobro === tipoCobro &&
       t.estado === 'A' &&
       (!isEditing || t.id_tarifa !== this.editing()!.id_tarifa)
     );
@@ -145,9 +147,9 @@ export class TarifasComponent implements OnInit {
       },
       error: (err: any) => {
         this.saving.set(false);
-        // Detectar error 409 (Conflict) cuando ya existe tarifa para ese tipo
+        // Detectar error 409 (Conflict) cuando ya existe tarifa para ese tipo y tipo de cobro
         if (err.status === 409) {
-          this.formError.set('Ya existe una tarifa para este tipo de vehículo. Edítala o elimínala antes.');
+          this.formError.set('Ya existe una tarifa para este tipo de vehículo con el mismo tipo de cobro. Edítala o elimínala antes.');
         } else {
           this.formError.set('Error al guardar la tarifa');
         }

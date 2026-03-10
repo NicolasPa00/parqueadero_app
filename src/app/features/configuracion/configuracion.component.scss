@@ -54,3 +54,41 @@
   &__body { padding: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md); }
   &__footer { display: flex; justify-content: flex-end; gap: var(--spacing-sm); padding: var(--spacing-lg); border-top: 1px solid var(--color-border); }
 }
+
+// ── Tipo picker (selector visual de tipo de vehículo) ──
+.tipo-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: var(--spacing-md);
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    min-height: 72px;
+    width: 78px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  &__label {
+    font-size: 0.7rem;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+}
