@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -9,6 +9,8 @@ import {
   Bike,
   Truck,
   Bus,
+  TriangleAlert,
+  CircleX,
 } from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
@@ -24,7 +26,7 @@ import { Tarifa, TipoVehiculo } from '../../core/models/parqueadero.models';
     {
       provide: LUCIDE_ICONS,
       multi: true,
-      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus }),
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert, CircleX }),
     },
   ],
 })
@@ -42,7 +44,19 @@ export class TarifasComponent implements OnInit {
   formTipoCobro = signal<'HORA' | 'FRACCION' | 'DIA' | 'MES'>('HORA');
   formValor = signal<number>(0);
   formDescripcion = signal('');
+  formError = signal<string>('');
   saving = signal(false);
+
+  // Computed: detecta si el tipo seleccionado ya tiene una tarifa activa
+  tieneTarifaEnForm = computed(() => {
+    const idTipo = this.formTipo();
+    const isEditing = !!this.editing();
+    return this.tarifas().some(t => 
+      t.id_tipo_vehiculo === idTipo && 
+      t.estado === 'A' &&
+      (!isEditing || t.id_tarifa !== this.editing()!.id_tarifa)
+    );
+  });
 
   readonly TIPO_ICON: Record<string, string> = {
     'automóvil':   'car',
@@ -86,6 +100,7 @@ export class TarifasComponent implements OnInit {
   }
 
   abrir(tarifa?: Tarifa): void {
+    this.formError.set('');
     if (tarifa) {
       this.editing.set(tarifa);
       this.formTipo.set(tarifa.id_tipo_vehiculo);
@@ -104,10 +119,12 @@ export class TarifasComponent implements OnInit {
 
   cerrar(): void {
     this.showForm.set(false);
+    this.formError.set('');
   }
 
   guardar(): void {
     this.saving.set(true);
+    this.formError.set('');
     const data = {
       id_tipo_vehiculo: this.formTipo(),
       id_negocio: this.idNeg,
@@ -121,8 +138,20 @@ export class TarifasComponent implements OnInit {
       : this.svc.createTarifa(data);
 
     obs.subscribe({
-      next: () => { this.saving.set(false); this.cerrar(); this.load(); },
-      error: () => this.saving.set(false),
+      next: () => {
+        this.saving.set(false);
+        this.cerrar();
+        this.load();
+      },
+      error: (err: any) => {
+        this.saving.set(false);
+        // Detectar error 409 (Conflict) cuando ya existe tarifa para ese tipo
+        if (err.status === 409) {
+          this.formError.set('Ya existe una tarifa para este tipo de vehículo. Edítala o elimínala antes.');
+        } else {
+          this.formError.set('Error al guardar la tarifa');
+        }
+      },
     });
   }
 

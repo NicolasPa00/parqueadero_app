@@ -90,6 +90,7 @@ export interface Tarifa {
   tipo_cobro: 'HORA' | 'FRACCION' | 'DIA' | 'MES';
   valor: number;
   descripcion?: string;
+  estado?: string;
   tipoVehiculo?: { nombre: string };
 }
 

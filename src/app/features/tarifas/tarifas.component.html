@@ -54,6 +54,18 @@
         <button class="modal__close" (click)="cerrar()">✕</button>
       </div>
       <div class="modal__body">
+        @if (formError()) {
+          <div class="tarifa-error">
+            <lucide-icon name="circle-x" [size]="16" />
+            {{ formError() }}
+          </div>
+        }
+        @if (tieneTarifaEnForm() && !editing()) {
+          <div class="tarifa-warning">
+            <lucide-icon name="triangle-alert" [size]="14" />
+            Este tipo ya tiene una tarifa activa.
+          </div>
+        }
         <label class="form-field">
           <span class="form-field__label">Tipo de vehículo</span>
           <div class="tipo-picker">
@@ -92,7 +104,7 @@
       </div>
       <div class="modal__footer">
         <button class="btn btn--ghost" (click)="cerrar()">Cancelar</button>
-        <button class="btn btn--primary" [disabled]="saving()" (click)="guardar()">
+        <button class="btn btn--primary" [disabled]="saving() || (tieneTarifaEnForm() && !editing())" (click)="guardar()">
           {{ saving() ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
