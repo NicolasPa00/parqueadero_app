@@ -1,0 +1,156 @@
+// tabla-transacciones.component.scss
+
+.tabla-transacciones {
+
+  // ── Encabezado ────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+
+    .total-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      font-weight: 600;
+    }
+  }
+
+  // ── Table wrapper ─────────────────────────────────────────
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  // ── Table ─────────────────────────────────────────────────
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+
+    th {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      padding: 0.75rem var(--spacing-md);
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+      -webkit-user-select: none;
+      user-select: none;
+
+      &.sortable {
+        cursor: pointer;
+        &:hover { background: var(--color-primary-hover); }
+      }
+
+      .sort-icon {
+        margin-left: 0.3rem;
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+    }
+
+    td {
+      padding: 0.55rem var(--spacing-md);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
+
+    tr:nth-child(even) td { background: var(--color-bg); }
+    tr:hover td { background: var(--color-primary-tint); }
+
+    .placa { font-family: monospace; font-weight: 600; letter-spacing: 0.05em; }
+    .valor { font-weight: 600; text-align: right; }
+
+    .empty-cell {
+      text-align: center;
+      color: var(--color-text-secondary);
+      padding: var(--spacing-xl);
+      font-style: italic;
+    }
+  }
+
+  // ── Skeleton ──────────────────────────────────────────────
+  .skeleton-row td { padding: 0.625rem var(--spacing-md); }
+
+  .skeleton {
+    display: block;
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--color-border) 25%, var(--color-bg) 50%, var(--color-border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  // ── Badges ────────────────────────────────────────────────
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+
+    &--activa  { background: var(--color-info-bg);    color: var(--color-info);    }
+    &--cerrada { background: var(--color-success-bg); color: var(--color-success); }
+    &--anulada { background: var(--color-error-bg);   color: var(--color-error);   }
+  }
+
+  // ── Export buttons ────────────────────────────────────────
+  .export-btns {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .btn-export {
+    padding: 0.3rem 0.75rem;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.85; }
+    &--csv  { background: #16a34a; color: #fff; }
+    &--xlsx { background: #0d6efd; color: #fff; }
+    &--pdf  { background: #dc2626; color: #fff; }
+  }
+
+  // ── Paginación ────────────────────────────────────────────
+  .paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+
+  .btn-pag {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) { background: var(--color-primary-tint); }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  .pag-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}

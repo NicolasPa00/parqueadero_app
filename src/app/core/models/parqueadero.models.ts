@@ -89,6 +89,7 @@ export interface Tarifa {
   id_negocio: number;
   tipo_cobro: 'HORA' | 'FRACCION' | 'DIA' | 'MES';
   valor: number;
+  valor_adicional?: number | null;
   descripcion?: string;
   estado?: string;
   tipoVehiculo?: { nombre: string };
@@ -106,7 +107,7 @@ export interface Vehiculo {
   observaciones?: string;
   estado: string;
   tipoVehiculo?: { nombre: string };
-  tarifa?: { tipo_cobro: string; valor: number };
+  tarifa?: { tipo_cobro: string; valor: number; valor_adicional?: number | null };
 }
 
 export interface VehiculosPaginados {

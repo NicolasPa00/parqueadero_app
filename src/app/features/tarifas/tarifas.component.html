@@ -15,7 +15,8 @@
           <tr>
             <th>Tipo vehículo</th>
             <th>Cobro</th>
-            <th>Valor</th>
+            <th>1ª hora</th>
+            <th>Hora adic.</th>
             <th>Descripción</th>
             <th>Acciones</th>
           </tr>
@@ -26,6 +27,7 @@
               <td>{{ t.tipoVehiculo?.nombre ?? '—' }}</td>
               <td><span class="badge">{{ t.tipo_cobro }}</span></td>
               <td>{{ formatMoneda(t.valor) }}</td>
+              <td>{{ t.valor_adicional != null ? formatMoneda(t.valor_adicional) : '—' }}</td>
               <td>{{ t.descripcion ?? '—' }}</td>
               <td class="tarifas__actions">
                 <button class="btn btn--sm btn--ghost" (click)="abrir(t)">Editar</button>
@@ -94,9 +96,15 @@
           </select>
         </label>
         <label class="form-field">
-          <span class="form-field__label">Valor ($)</span>
+          <span class="form-field__label">Valor 1ª hora ($)</span>
           <input type="number" class="input" [ngModel]="formValor()" (ngModelChange)="formValor.set($event)" min="0" />
         </label>
+        @if (mostrarValorAdicional()) {
+          <label class="form-field">
+            <span class="form-field__label">Valor hora adicional ($) <span style="font-weight:normal;font-size:11px;color:#888">(opcional — si es igual a la 1ª, déjalo vacío)</span></span>
+            <input type="number" class="input" [ngModel]="formValorAdicional()" (ngModelChange)="formValorAdicional.set($event || null)" min="0" placeholder="Mismo valor" />
+          </label>
+        }
         <label class="form-field">
           <span class="form-field__label">Descripción</span>
           <input type="text" class="input" [ngModel]="formDescripcion()" (ngModelChange)="formDescripcion.set($event)" />

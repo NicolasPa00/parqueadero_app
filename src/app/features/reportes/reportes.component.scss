@@ -1,11 +1,266 @@
-.page-stub {
-  &__title { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text-primary); margin: 0 0 var(--spacing-xl); }
-  &__card {
-    padding: var(--spacing-2xl);
+// reportes.component.scss
+// Módulo de reportes — Escalapp Parqueadero
+
+.reportes-page {
+  padding: var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+
+  // ── Alert banners (error / warning) ──────────────────────
+  .alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    border-radius: 8px;
+    padding: 0.75rem var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-left: 4px solid transparent;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+
+    &--error {
+      background: var(--color-error-bg);
+      border-left-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    &--warning {
+      background: var(--color-warning-bg);
+      border-left-color: var(--color-warning);
+      color: var(--color-warning);
+    }
+
+    &__icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+      margin-top: 1px;
+    }
+
+    &__msg {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    &__close {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      opacity: 0.7;
+      color: inherit;
+      &:hover { opacity: 1; }
+    }
+  }
+
+  // ── Page header ───────────────────────────────────────────
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+
+    h1 {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+
+    .export-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+
+      &__spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--color-border);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+    }
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 2px solid var(--color-border);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.625rem var(--spacing-md);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      border-radius: 4px 4px 0 0;
+
+      &:hover { color: var(--color-primary); }
+
+      &.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+        font-weight: 600;
+        background: var(--color-primary-tint);
+      }
+
+      .tab-icon { font-size: 1rem; }
+    }
+  }
+
+  // ── Tab content ───────────────────────────────────────────
+  .tab-content {
+    position: relative;
+    min-height: 300px;
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.85);
+      z-index: 10;
+      gap: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  // ── Totales / stats row ───────────────────────────────────
+  .totales-row {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md) var(--spacing-lg);
+      min-width: 160px;
+      box-shadow: var(--shadow-elevated);
+
+      .stat-label {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .stat-value {
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-top: 0.25rem;
+      }
+    }
+  }
+
+  // ── Tabla genérica ────────────────────────────────────────
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow-elevated);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+
+    th {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      padding: 0.75rem var(--spacing-md);
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.625rem var(--spacing-md);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+    }
+
+    tr:nth-child(even) td { background: var(--color-bg); }
+    tr:hover td { background: var(--color-primary-tint); }
+
+    .positivo { color: var(--color-success); font-weight: 600; }
+    .negativo { color: var(--color-error);   font-weight: 600; }
+  }
+
+  // ── Placeholder gráfica ───────────────────────────────────
+  .placeholder-chart {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--color-bg),
+      var(--color-bg) 10px,
+      var(--color-border) 10px,
+      var(--color-border) 20px
+    );
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+    padding: 3rem var(--spacing-md);
     text-align: center;
     color: var(--color-text-secondary);
-    p { font-size: var(--font-size-lg); margin-bottom: var(--spacing-md); }
-    ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--spacing-sm); }
-    li { font-size: var(--font-size-sm); }
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: 3rem var(--spacing-md);
+    font-size: var(--font-size-base);
+  }
+
+  // ── Botones ───────────────────────────────────────────────
+  .btn-danger-sm {
+    padding: 0.25rem 0.75rem;
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border: 1px solid var(--color-error);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    transition: background 0.2s;
+
+    &:hover { background: var(--color-error); color: #fff; }
   }
 }
+
+// ── Animaciones ───────────────────────────────────────────
+@keyframes spin  { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+

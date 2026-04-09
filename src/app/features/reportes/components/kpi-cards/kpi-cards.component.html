@@ -1,0 +1,59 @@
+<div class="kpi-grid" aria-label="Indicadores clave del período">
+
+  <!-- ── Esqueleto de carga ──────────────────────────────── -->
+  @if (cargando) {
+    @for (i of [1,2,3,4]; track i) {
+      <div class="kpi-card kpi-card--skeleton">
+        <div class="skeleton skeleton--label"></div>
+        <div class="skeleton skeleton--value"></div>
+      </div>
+    }
+  }
+
+  <!-- ── Cards con datos ────────────────────────────────── -->
+  @if (!cargando && resumen) {
+
+    <!-- Total Ingresos -->
+    <div class="kpi-card kpi-card--primary">
+      <span class="kpi-card__icon" aria-hidden="true">💰</span>
+      <span class="kpi-card__label">Total Ingresos</span>
+      <span class="kpi-card__value">
+        {{ resumen.total_ingresos | currency:'COP':'symbol-narrow':'1.0-0' }}
+      </span>
+    </div>
+
+    <!-- Ticket promedio -->
+    <div class="kpi-card">
+      <span class="kpi-card__icon" aria-hidden="true">🎫</span>
+      <span class="kpi-card__label">Ticket Promedio</span>
+      <span class="kpi-card__value">
+        {{ resumen.ticket_promedio | currency:'COP':'symbol-narrow':'1.0-0' }}
+      </span>
+    </div>
+
+    <!-- Total transacciones -->
+    <div class="kpi-card">
+      <span class="kpi-card__icon" aria-hidden="true">🚗</span>
+      <span class="kpi-card__label">Transacciones</span>
+      <span class="kpi-card__value">
+        {{ resumen.total_transacciones | number:'1.0-0' }}
+      </span>
+    </div>
+
+    <!-- Duración promedio -->
+    <div class="kpi-card">
+      <span class="kpi-card__icon" aria-hidden="true">⏱️</span>
+      <span class="kpi-card__label">Duración Promedio</span>
+      <span class="kpi-card__value">
+        {{ formatDuracion(resumen.duracion_promedio_min) }}
+      </span>
+    </div>
+
+  }
+
+  <!-- ── Estado vacío ────────────────────────────────────── -->
+  @if (!cargando && !resumen) {
+    <div class="kpi-empty">Sin datos para el período seleccionado.</div>
+  }
+
+</div>

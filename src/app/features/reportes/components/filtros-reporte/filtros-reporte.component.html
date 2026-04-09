@@ -1,0 +1,74 @@
+<section class="filtros-panel" aria-label="Filtros de reporte">
+
+  <!-- ── Presets de rango ──────────────────────────────────── -->
+  <div class="filtros-panel__presets">
+    @for (preset of presets; track preset.label) {
+      <button
+        type="button"
+        class="btn-preset"
+        [class.active]="presetActivo() === preset.label"
+        (click)="aplicarPreset(preset)"
+      >
+        {{ preset.label }}
+      </button>
+    }
+  </div>
+
+  <!-- ── Rango de fechas + granularidad ───────────────────── -->
+  <div class="filtros-panel__row">
+    <div class="form-group">
+      <label for="fecha-desde">Desde</label>
+      <input
+        id="fecha-desde"
+        type="date"
+        class="form-control"
+        [value]="desde()"
+        (change)="onDesdeChange($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="fecha-hasta">Hasta</label>
+      <input
+        id="fecha-hasta"
+        type="date"
+        class="form-control"
+        [value]="hasta()"
+        (change)="onHastaChange($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="granularidad">Granularidad</label>
+      <select
+        id="granularidad"
+        class="form-control"
+        [value]="granularidad()"
+        (change)="onGranularidadChange($any($event.target).value)"
+      >
+        @for (g of granularidades; track g.value) {
+          <option [value]="g.value">{{ g.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- ── Botones de exportación ─────────────────────────── -->
+    @if (mostrarExportar) {
+      <div class="form-group form-group--export">
+        <label>Exportar</label>
+        <div class="export-btns">
+          <button type="button" class="btn-export btn-export--csv"  (click)="emitirExportar('csv')">
+            CSV
+          </button>
+          <button type="button" class="btn-export btn-export--xlsx" (click)="emitirExportar('xlsx')">
+            Excel
+          </button>
+          <button type="button" class="btn-export btn-export--pdf"  (click)="emitirExportar('pdf')">
+            PDF
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</section>

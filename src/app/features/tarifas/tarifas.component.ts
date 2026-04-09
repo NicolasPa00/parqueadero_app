@@ -43,9 +43,15 @@ export class TarifasComponent implements OnInit {
   formTipo = signal<number>(0);
   formTipoCobro = signal<'HORA' | 'FRACCION' | 'DIA' | 'MES'>('HORA');
   formValor = signal<number>(0);
+  formValorAdicional = signal<number | null>(null);
   formDescripcion = signal('');
   formError = signal<string>('');
   saving = signal(false);
+
+  // Computed: muestra el campo valor_adicional sólo para cobros por tiempo (HORA / FRACCION)
+  mostrarValorAdicional = computed(() =>
+    this.formTipoCobro() === 'HORA' || this.formTipoCobro() === 'FRACCION'
+  );
 
   // Computed: detecta si ya existe una tarifa con el MISMO tipo de vehículo Y MISMO tipo de cobro
   tieneTarifaEnForm = computed(() => {
@@ -108,12 +114,14 @@ export class TarifasComponent implements OnInit {
       this.formTipo.set(tarifa.id_tipo_vehiculo);
       this.formTipoCobro.set(tarifa.tipo_cobro);
       this.formValor.set(tarifa.valor);
+      this.formValorAdicional.set(tarifa.valor_adicional ?? null);
       this.formDescripcion.set(tarifa.descripcion ?? '');
     } else {
       this.editing.set(null);
       this.formTipo.set(this.tipos().length ? this.tipos()[0].id_tipo_vehiculo : 0);
       this.formTipoCobro.set('HORA');
       this.formValor.set(0);
+      this.formValorAdicional.set(null);
       this.formDescripcion.set('');
     }
     this.showForm.set(true);
@@ -127,11 +135,13 @@ export class TarifasComponent implements OnInit {
   guardar(): void {
     this.saving.set(true);
     this.formError.set('');
+    const tc = this.formTipoCobro();
     const data = {
       id_tipo_vehiculo: this.formTipo(),
       id_negocio: this.idNeg,
-      tipo_cobro: this.formTipoCobro(),
+      tipo_cobro: tc,
       valor: this.formValor(),
+      valor_adicional: (tc === 'HORA' || tc === 'FRACCION') ? (this.formValorAdicional() ?? null) : null,
       descripcion: this.formDescripcion() || undefined,
     };
 

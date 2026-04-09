@@ -1,0 +1,101 @@
+<div class="tabla-transacciones">
+
+  <!-- ── Encabezado con total + exportación ──────────────── -->
+  <div class="tabla-transacciones__header">
+    <span class="total-label">
+      {{ totalItems | number }} transacciones encontradas
+    </span>
+    <div class="export-btns">
+      <button type="button" class="btn-export btn-export--csv"  (click)="emitirExportar('csv')">CSV</button>
+      <button type="button" class="btn-export btn-export--xlsx" (click)="emitirExportar('xlsx')">Excel</button>
+      <button type="button" class="btn-export btn-export--pdf"  (click)="emitirExportar('pdf')">PDF</button>
+    </div>
+  </div>
+
+  <!-- ── Tabla ────────────────────────────────────────────── -->
+  <div class="table-wrapper">
+    <table class="data-table" aria-label="Tabla de transacciones">
+      <thead>
+        <tr>
+          @for (col of columnas; track col.campo) {
+            <th [class.sortable]="col.sortable" (click)="col.sortable && toggleSort(col.campo)">
+              {{ col.label }}
+              @if (col.sortable) {
+                <span class="sort-icon" aria-hidden="true">{{ sortIcon(col.campo) }}</span>
+              }
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <!-- Skeleton rows -->
+        @if (cargando) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="skeleton-row">
+              @for (col of columnas; track col.campo) {
+                <td><span class="skeleton"></span></td>
+              }
+            </tr>
+          }
+        }
+
+        <!-- Data rows -->
+        @if (!cargando) {
+          @for (row of filas; track row.id_factura) {
+            <tr>
+              <td>{{ row.numero_factura }}</td>
+              <td class="placa">{{ row.placa }}</td>
+              <td>{{ row.nombre_tipo_vehiculo }}</td>
+              <td>{{ row.fecha_entrada_local | date:'dd/MM/yy HH:mm' }}</td>
+              <td>{{ row.fecha_cierre_local  | date:'dd/MM/yy HH:mm' }}</td>
+              <td>{{ formatDuracion(row.duracion_minutos) }}</td>
+              <td class="valor">{{ row.valor_total | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              <td>
+                <span class="badge" [ngClass]="estadoClass(row.estado)">
+                  {{ estadoLabel(row.estado) }}
+                </span>
+              </td>
+            </tr>
+          }
+
+          @if (filas.length === 0) {
+            <tr>
+              <td [attr.colspan]="columnas.length" class="empty-cell">
+                Sin transacciones para el período y filtros seleccionados.
+              </td>
+            </tr>
+          }
+        }
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Paginación ───────────────────────────────────────── -->
+  @if (!cargando && totalPaginas > 1) {
+    <nav class="paginacion" aria-label="Paginación">
+      <button
+        type="button"
+        class="btn-pag"
+        [disabled]="!hayPrev()"
+        (click)="irAPagina(paginaActual - 1)"
+        aria-label="Página anterior"
+      >← Anterior</button>
+
+      <span class="pag-info">
+        Página {{ paginaActual }} de {{ totalPaginas }}
+      </span>
+
+      <button
+        type="button"
+        class="btn-pag"
+        [disabled]="!hayNext()"
+        (click)="irAPagina(paginaActual + 1)"
+        aria-label="Página siguiente"
+      >Siguiente →</button>
+    </nav>
+  }
+
+</div>

@@ -1,12 +1,224 @@
-<div class="page-stub">
-  <h1 class="page-stub__title">Reportes</h1>
-  <div class="card page-stub__card">
-    <p>📊 Módulo de reportes en desarrollo.</p>
-    <ul>
-      <li>Ingresos del día / mes</li>
-      <li>Ocupación histórica</li>
-      <li>Vehículos frecuentes</li>
-      <li>Reporte por tipo de vehículo</li>
-    </ul>
+<!-- reportes.component.html -->
+<section class="reportes-page">
+
+  <!-- Error banner — errores de carga de datos -->
+  @if (store.error()) {
+    <div class="alert-banner alert-banner--error" role="alert">
+      <span class="alert-banner__icon">⚠</span>
+      <span class="alert-banner__msg">{{ store.error() }}</span>
+      <button class="alert-banner__close" (click)="store.limpiarError()" aria-label="Cerrar error">✕</button>
+    </div>
+  }
+
+  <!-- Warning banner — errores de exportación -->
+  @if (store.exportError()) {
+    <div class="alert-banner alert-banner--warning" role="alert">
+      <span class="alert-banner__icon">📋</span>
+      <span class="alert-banner__msg">{{ store.exportError() }}</span>
+      <button class="alert-banner__close" (click)="store.limpiarExportError()" aria-label="Cerrar">✕</button>
+    </div>
+  }
+
+  <!-- Encabezado -->
+  <header class="page-header">
+    <h1>Reportes</h1>
+    <div class="header-actions">
+      @if (store.cargandoExport()) {
+        <span class="export-loading">
+          <span class="export-loading__spinner"></span>
+          Generando reporte…
+        </span>
+      }
+    </div>
+  </header>
+
+  <!-- Panel de filtros -->
+  <app-filtros-reporte
+    [filtros]="store.filtros()"
+    (filtrosChange)="onFiltrosChange($event)"
+    (exportar)="onExportar($event)"
+  />
+
+  <!-- Tabs de navegación -->
+  <nav class="tabs" role="tablist">
+    @for (tab of tabs; track tab.id) {
+      <button
+        role="tab"
+        [attr.aria-selected]="store.tabActiva() === tab.id"
+        [class.active]="store.tabActiva() === tab.id"
+        (click)="onCambiarTab(tab.id)"
+      >
+        <span class="tab-icon">{{ tab.icon }}</span>
+        {{ tab.label }}
+      </button>
+    }
+  </nav>
+
+  <!-- Contenido de las tabs -->
+  <div class="tab-content" role="tabpanel">
+
+    <!-- Loading overlay -->
+    @if (store.cargando()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <span>Cargando...</span>
+      </div>
+    }
+
+    <!-- Tab: Resumen -->
+    @if (store.tabActiva() === 'resumen') {
+      <app-kpi-cards [resumen]="store.resumen()" />
+    }
+
+    <!-- Tab: Ingresos -->
+    @if (store.tabActiva() === 'ingresos') {
+      <div class="chart-container">
+        <h2>Serie de Ingresos</h2>
+        @if (store.ingresosAgregados(); as datos) {
+          <div class="totales-row">
+            <div class="stat">
+              <span class="stat-label">Total período</span>
+              <span class="stat-value">{{ datos.totales.total_periodo | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Transacciones</span>
+              <span class="stat-value">{{ datos.totales.transacciones_periodo | number }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Ticket promedio</span>
+              <span class="stat-value">{{ datos.totales.ticket_promedio | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+          <!-- TODO: insertar <app-chart-ingresos [serie]="datos.serie" /> -->
+          <p class="placeholder-chart">[Gráfica de línea — instalar ng2-charts]</p>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th>Ingresos</th>
+                <th>Transacciones</th>
+                <th>Ticket Prom.</th>
+                <th>Crecimiento MoM</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of datos.serie; track fila.periodo) {
+                <tr>
+                  <td>{{ fila.periodo | date:'dd/MM/yyyy HH:mm':'America/Bogota' }}</td>
+                  <td>{{ fila.total_ingresos | currency:'COP':'symbol':'1.0-0' }}</td>
+                  <td>{{ fila.num_transacciones | number }}</td>
+                  <td>{{ fila.ticket_promedio | currency:'COP':'symbol':'1.0-0' }}</td>
+                  <td [class.positivo]="(fila.crecimiento_mom_pct ?? 0) > 0"
+                      [class.negativo]="(fila.crecimiento_mom_pct ?? 0) < 0">
+                    {{ fila.crecimiento_mom_pct !== null ? (fila.crecimiento_mom_pct | number:'1.1-1') + '%' : '—' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty-state">Sin datos para el período seleccionado.</p>
+        }
+      </div>
+    }
+
+    <!-- Tab: Transacciones -->
+    @if (store.tabActiva() === 'transacciones') {
+      <app-tabla-transacciones
+        [datos]="store.transacciones()"
+        [cargando]="store.cargando()"
+        (cambiarPagina)="store.cambiarPagina($event)"
+        (exportar)="onExportar($event)"
+      />
+    }
+
+    <!-- Tab: Horas pico -->
+    @if (store.tabActiva() === 'horas-pico') {
+      @if (store.horasPico(); as datos) {
+        <div class="horas-pico-container">
+          <h2>Horas Pico</h2>
+          <p>Top 3 horas: <strong>{{ datos.top3HorasPico.join('h, ') }}h</strong></p>
+          <!-- TODO: Bar chart horizontal -->
+          <p class="placeholder-chart">[Barra horizontal — instalar ng2-charts]</p>
+          <table class="data-table">
+            <thead><tr><th>Hora</th><th>Prom. Entradas/día</th><th>Prom. Salidas/día</th></tr></thead>
+            <tbody>
+              @for (h of datos.horas; track h.hora_local) {
+                <tr>
+                  <td>{{ h.hora_local | number:'2.0-0' }}:00</td>
+                  <td>{{ h.promedio_entradas_por_dia | number:'1.1-1' }}</td>
+                  <td>{{ h.promedio_salidas_por_dia | number:'1.1-1' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty-state">Selecciona un período y carga los datos.</p>
+      }
+    }
+
+    <!-- Tab: Tipos de vehículo -->
+    @if (store.tabActiva() === 'tipos') {
+      <div class="tipos-container">
+        <h2>Distribución por Tipo de Vehículo</h2>
+        <!-- TODO: Donut chart -->
+        <p class="placeholder-chart">[Donut chart — instalar ng2-charts]</p>
+        <table class="data-table">
+          <thead>
+            <tr><th>Tipo</th><th>Cantidad</th><th>%</th><th>Duración Prom.</th><th>Ingreso Prom.</th></tr>
+          </thead>
+          <tbody>
+            @for (tipo of store.distribucionTipos(); track tipo.id_tipo_vehiculo) {
+              <tr>
+                <td>{{ tipo.nombre_tipo }}</td>
+                <td>{{ tipo.cantidad | number }}</td>
+                <td>{{ tipo.porcentaje | number:'1.1-1' }}%</td>
+                <td>{{ tipo.duracion_promedio_min | number:'1.0-0' }} min</td>
+                <td>{{ tipo.ingreso_promedio | currency:'COP':'symbol':'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Tab: Programados -->
+    @if (store.tabActiva() === 'programados') {
+      <div class="programados-container">
+        <h2>Reportes Programados</h2>
+        <!-- TODO: Botón para abrir modal <app-schedule-modal> -->
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th><th>Tipo</th><th>Frecuencia</th><th>Formato</th>
+              <th>Destinatarios</th><th>Último envío</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (prog of store.programados(); track prog.id_programacion) {
+              <tr>
+                <td>{{ prog.nombre }}</td>
+                <td>{{ prog.tipo_reporte }}</td>
+                <td><code>{{ prog.cron_expression }}</code></td>
+                <td>{{ prog.formato | uppercase }}</td>
+                <td>{{ prog.email_destinatarios.join(', ') }}</td>
+                <td>{{ prog.ultimo_envio ? (prog.ultimo_envio | date:'dd/MM/yy HH:mm':'America/Bogota') : 'Nunca' }}</td>
+                <td>
+                  <button
+                    class="btn-danger-sm"
+                    (click)="onEliminarProgramacion(prog.id_programacion)"
+                    aria-label="Eliminar programación"
+                  >Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="empty-state">No hay reportes programados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
   </div>
-</div>
+</section>

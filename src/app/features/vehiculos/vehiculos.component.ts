@@ -124,12 +124,21 @@ export class VehiculosComponent implements OnInit, OnDestroy {
   salidaValorCalculado = computed(() => {
     const v = this.vehiculoSalida();
     if (!v?.tarifa) return 0;
-    const diffMs = Math.max(0, Date.now() - this.toUTC(v.fecha_entrada).getTime());
-    const mins  = Math.max(1, Math.floor(diffMs / 60000));
-    const valor = Number(v.tarifa.valor);
+    const diffMs    = Math.max(0, Date.now() - this.toUTC(v.fecha_entrada).getTime());
+    const mins      = Math.max(1, Math.floor(diffMs / 60000));
+    const valor     = Number(v.tarifa.valor);
+    const adicional = v.tarifa.valor_adicional != null ? Number(v.tarifa.valor_adicional) : null;
     switch (v.tarifa.tipo_cobro) {
-      case 'HORA':    return Math.ceil(mins / 60)        * valor;
-      case 'FRACCION':return Math.ceil(mins / 30)        * valor;
+      case 'HORA': {
+        const periodos = Math.ceil(mins / 60);
+        if (adicional != null && periodos > 1) return valor + adicional * (periodos - 1);
+        return periodos * valor;
+      }
+      case 'FRACCION': {
+        const periodos = Math.ceil(mins / 30);
+        if (adicional != null && periodos > 1) return valor + adicional * (periodos - 1);
+        return periodos * valor;
+      }
       case 'DIA':     return Math.ceil(mins / (60 * 24)) * valor;
       case 'MES':     return valor;
       default:        return 0;
@@ -300,10 +309,6 @@ export class VehiculosComponent implements OnInit, OnDestroy {
         this.savingSalida.set(false);
         this.cerrarSalida();
         this.loadVehiculos();
-        // Imprimir recibo de salida
-        if (res.data?.id_factura) {
-          this.print.imprimirSalida(res.data);
-        }
       },
       error: () => this.savingSalida.set(false),
     });
