@@ -45,6 +45,7 @@ export interface AccesoParqueadero {
   roles: UserRol[];
   roles_globales: UserRol[];
   niveles: NivelPermiso[];
+  plan_activo?: boolean;
 }
 
 export type VerificarTokenResponse = ApiResponse<AccesoParqueadero>;

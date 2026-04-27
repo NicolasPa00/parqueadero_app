@@ -28,6 +28,7 @@ export class AuthService {
 
   readonly accessData = this._accessData.asReadonly();
   readonly isAuthenticated = computed(() => !!this._accessData() && !!this._token());
+  readonly planActivo      = computed(() => this._accessData()?.plan_activo ?? false);
   readonly usuario = computed(() => this._accessData()?.usuario ?? null);
   readonly negocios = computed(() => this._accessData()?.negocios ?? []);
   readonly negocio = computed(() => this._selectedNegocio() ?? this._accessData()?.negocio ?? null);

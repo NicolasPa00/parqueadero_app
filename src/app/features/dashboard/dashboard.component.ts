@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import {
   LucideAngularModule,
@@ -8,6 +8,7 @@ import {
   Gauge,
   Banknote,
   ArrowLeftRight,
+  CreditCard,
 } from 'lucide-angular';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
@@ -23,7 +24,7 @@ import { DashboardKpis, UltimoVehiculo } from '../../core/models/parqueadero.mod
     {
       provide: LUCIDE_ICONS,
       multi: true,
-      useValue: new LucideIconProvider({ Car, Gauge, Banknote, ArrowLeftRight }),
+      useValue: new LucideIconProvider({ Car, Gauge, Banknote, ArrowLeftRight, CreditCard }),
     },
   ],
 })
@@ -31,6 +32,7 @@ export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly parqService = inject(ParqueaderoService);
 
+  readonly planActivo = computed(() => this.authService.planActivo());
   protected readonly loading = signal(true);
   protected readonly kpis = signal<DashboardKpis>({
     vehiculos_actuales: 0,

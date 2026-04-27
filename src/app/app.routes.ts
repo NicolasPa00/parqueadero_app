@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth/guards/auth.guard';
+import { authGuard, planGuard } from './auth/guards/auth.guard';
 import { ShellComponent } from './layout/shell/shell.component';
 
 export const routes: Routes = [
@@ -27,33 +27,44 @@ export const routes: Routes = [
       },
       {
         path: 'vehiculos',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/vehiculos/vehiculos.component').then(m => m.VehiculosComponent),
       },
       {
         path: 'tarifas',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/tarifas/tarifas.component').then(m => m.TarifasComponent),
       },
       {
         path: 'caja',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/caja/caja.component').then(m => m.CajaComponent),
       },
       {
         path: 'abonados',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/abonados/abonados.component').then(m => m.AbonadosComponent),
       },
       {
         path: 'reportes',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/reportes/reportes.component').then(m => m.ReportesComponent),
       },
       {
         path: 'configuracion',
+        canActivate: [planGuard],
         loadComponent: () =>
           import('./features/configuracion/configuracion.component').then(m => m.ConfiguracionComponent),
+      },
+      {
+        path: 'sin-plan',
+        loadComponent: () =>
+          import('./features/sin-plan/sin-plan.component').then(m => m.SinPlanComponent),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
