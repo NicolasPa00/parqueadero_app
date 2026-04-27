@@ -3,11 +3,22 @@ import { CanActivateFn, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../data-access/auth.service';
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
+
+  if (!isPlatformBrowser(platformId)) return true;
 
   if (authService.isAuthenticated()) return true;
+
+  const stored = authService.getAccessToken();
+  if (stored) {
+    const ok = await authService.validateAndSetToken(stored);
+    if (ok) return true;
+    authService.logout();
+    return false;
+  }
 
   router.navigate(['/acceso']);
   return false;

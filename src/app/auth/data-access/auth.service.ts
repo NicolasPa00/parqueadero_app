@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, firstValueFrom, tap } from 'rxjs';
 import { API_BASE_URL } from '../../core/config/api.config';
 import {
   AccesoParqueadero,
@@ -41,6 +41,32 @@ export class AuthService {
 
   getToken(): string | null {
     return this._token();
+  }
+
+  getAccessToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem(STORAGE_TOKEN);
+  }
+
+  async validateAndSetToken(token: string): Promise<boolean> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<VerificarTokenResponse>(`${this.apiBase}/auth/verificar-token`, { token })
+      );
+      if (res?.success && res.data) {
+        this._token.set(token);
+        this._accessData.set(res.data);
+        this._selectedNegocio.set(res.data.negocio);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem(STORAGE_TOKEN, token);
+          localStorage.setItem(STORAGE_USER, JSON.stringify(res.data));
+        }
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   /**
