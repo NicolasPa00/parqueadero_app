@@ -1,0 +1,311 @@
+// ============================================================
+// Salida QR — Página móvil optimizada para pago desde celular
+// ============================================================
+
+.qr-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+
+  &__state {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    max-width: 360px;
+    width: 100%;
+
+    &--error lucide-icon { color: var(--color-error); }
+    &--success lucide-icon { color: var(--color-success); }
+  }
+
+  &__title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  &__text {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+    line-height: 1.5;
+
+    &--error { color: var(--color-error); }
+  }
+
+  &__spinner {
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Card principal ──
+.qr-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  padding: var(--spacing-xl);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-primary);
+  }
+
+  &__title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  &__placa {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 4px;
+    text-align: center;
+    padding: var(--spacing-md);
+    border: 3px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  &__info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+
+    lucide-icon {
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+  }
+
+  &__info-lbl {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  &__info-val {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text-primary);
+
+    &--price {
+      color: var(--color-success);
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  &__tarifa-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 4px 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    background: var(--color-primary-tint-strong);
+    color: var(--color-primary);
+    border-radius: var(--radius-full);
+  }
+
+  &__error {
+    padding: var(--spacing-md);
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+}
+
+// ── Botón principal móvil ──
+.qr-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 16px 24px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), opacity var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 56px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--success {
+    background-color: var(--color-success);
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background-color: #1b5e20;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+
+    &:hover:not(:disabled) {
+      background: var(--color-bg);
+    }
+  }
+}
+
+// ── Card de éxito ──
+.qr-success-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-success);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+
+  &__placa {
+    font-size: 1.75rem;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) 0;
+  }
+
+  &__lbl {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  &__val {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  &__total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+    background: var(--color-success-bg);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-success);
+    font-weight: 600;
+  }
+
+  &__amount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-success);
+  }
+
+  &__factura {
+    text-align: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 480px) {
+  .qr-card {
+    border-radius: 0;
+    box-shadow: none;
+    padding: var(--spacing-lg);
+
+    &__placa {
+      font-size: 2rem;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    &__info-val--price {
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  .qr-btn {
+    padding: 14px 20px;
+    min-height: 52px;
+    font-size: var(--font-size-sm);
+  }
+
+  .qr-success-card__amount {
+    font-size: 1.75rem;
+  }
+}
+
+// ── Landscape ajustment ──
+@media (max-height: 500px) {
+  .qr-page {
+    align-items: flex-start;
+    padding: var(--spacing-sm);
+  }
+
+  .qr-card {
+    &__placa { font-size: 1.5rem; padding: var(--spacing-xs) var(--spacing-sm); }
+    &__info { gap: var(--spacing-xs); }
+    &__info-row { padding: var(--spacing-sm); }
+  }
+}

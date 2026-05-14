@@ -1,0 +1,98 @@
+<div class="qr-page">
+  <!-- ── Estado: Cargando ── -->
+  @if (loading()) {
+    <div class="qr-page__state">
+      <lucide-icon name="loader-circle" [size]="40" class="qr-page__spinner" />
+      <p class="qr-page__text">Cargando información...</p>
+    </div>
+  }
+
+  <!-- ── Estado: Error ── -->
+  @if (!loading() && error() && !salidaExitosa()) {
+    <div class="qr-page__state qr-page__state--error">
+      <lucide-icon name="x-circle" [size]="48" />
+      <h2 class="qr-page__title">No se pudo procesar el QR</h2>
+      <p class="qr-page__text qr-page__text--error">{{ error() }}</p>
+    </div>
+  }
+
+  <!-- ── Estado: Salida exitosa ── -->
+  @if (salidaExitosa(); as s) {
+    <div class="qr-page__state qr-page__state--success">
+      <lucide-icon name="check-circle-2" [size]="56" />
+      <h2 class="qr-page__title">Salida registrada</h2>
+      <div class="qr-success-card">
+        <div class="qr-success-card__placa">{{ s.placa }}</div>
+        <div class="qr-success-card__row">
+          <span class="qr-success-card__lbl">Entrada</span>
+          <span class="qr-success-card__val">{{ formatFecha(s.fecha_entrada) }}</span>
+        </div>
+        <div class="qr-success-card__row">
+          <span class="qr-success-card__lbl">Salida</span>
+          <span class="qr-success-card__val">{{ formatFecha(s.fecha_salida) }}</span>
+        </div>
+        <div class="qr-success-card__row">
+          <span class="qr-success-card__lbl">Tiempo</span>
+          <span class="qr-success-card__val">{{ s.tiempo_transcurrido }}</span>
+        </div>
+        <div class="qr-success-card__total">
+          <span>TOTAL PAGADO</span>
+          <span class="qr-success-card__amount">{{ s.costo_formateado }}</span>
+        </div>
+        @if (s.numero_factura) {
+          <div class="qr-success-card__factura">Factura: {{ s.numero_factura }}</div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Estado: Vehículo encontrado (mostrar info + confirmar) ── -->
+  @if (!loading() && !error() && vehiculo() && !salidaExitosa()) {
+    <div class="qr-card">
+      <!-- Header -->
+      <div class="qr-card__header">
+        <lucide-icon [name]="tipoIcono(vehiculo()!.tipoVehiculo?.nombre ?? '')" [size]="32" />
+        <h2 class="qr-card__title">Salida de vehículo</h2>
+      </div>
+
+      <!-- Placa -->
+      <div class="qr-card__placa">{{ vehiculo()!.placa }}</div>
+
+      <!-- Detalles -->
+      <div class="qr-card__info">
+        <div class="qr-card__info-row">
+          <lucide-icon name="clock" [size]="18" />
+          <div>
+            <span class="qr-card__info-lbl">Tiempo transcurrido</span>
+            <span class="qr-card__info-val">{{ vehiculo()!.tiempo_transcurrido }}</span>
+          </div>
+        </div>
+        <div class="qr-card__info-row">
+          <lucide-icon name="banknote" [size]="18" />
+          <div>
+            <span class="qr-card__info-lbl">Valor a pagar</span>
+            <span class="qr-card__info-val qr-card__info-val--price">{{ vehiculo()!.costo_formateado }}</span>
+          </div>
+        </div>
+        @if (vehiculo()!.tarifa) {
+          <div class="qr-card__tarifa-badge">{{ vehiculo()!.tarifa!.tipo_cobro }}</div>
+        }
+      </div>
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="qr-card__error">{{ error() }}</div>
+      }
+
+      <!-- Acciones -->
+      <div class="qr-card__actions">
+        <button class="qr-btn qr-btn--success" [disabled]="saving()" (click)="confirmarSalida()">
+          @if (saving()) {
+            <lucide-icon name="loader-circle" [size]="18" class="qr-page__spinner" />
+          }
+          {{ saving() ? 'Procesando...' : 'Confirmar salida' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

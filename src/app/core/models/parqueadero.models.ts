@@ -107,6 +107,7 @@ export interface Vehiculo {
   valor_cobrado?: number;
   observaciones?: string;
   estado: string;
+  qr_token?: string;
   tipoVehiculo?: { nombre: string };
   tarifa?: { tipo_cobro: string; valor: number; valor_adicional?: number | null };
 }
@@ -149,6 +150,30 @@ export interface Factura {
 export interface VehiculoConFactura extends Vehiculo {
   id_factura?:     number;
   numero_factura?: string;
+  qr_token?:       string;
+}
+
+// ── QR ──
+export interface VehiculoQR {
+  id_vehiculo:    number;
+  placa:          string;
+  qr_token:       string;
+  fecha_entrada:  string;
+  tipoVehiculo:   { nombre: string } | null;
+  tarifa:         { tipo_cobro: string; valor: number; valor_adicional?: number | null } | null;
+  costo:          number;
+  costo_formateado: string;
+  tiempo_transcurrido: string;
+  observaciones?: string;
+}
+
+export interface SalidaQRResponse extends Vehiculo {
+  id_factura?:     number;
+  numero_factura?: string;
+  valor_cobrado:   number;
+  costo_formateado: string;
+  fecha_salida:    string;
+  tiempo_transcurrido: string;
 }
 
 // ── Abonado ──
@@ -209,5 +234,8 @@ export interface NavItem {
   label: string;
   icon: string;
   route?: string;
+  badge?: number;
+  /** 'main' = bottom nav móvil; 'secondary' = panel "Más" */
+  section: 'main' | 'secondary';
   children?: NavItem[];
 }

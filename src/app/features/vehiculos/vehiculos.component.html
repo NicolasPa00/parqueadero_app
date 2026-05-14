@@ -1,7 +1,6 @@
 <div class="vehiculos">
   <!-- Header -->
   <div class="vehiculos__header">
-    <h1 class="vehiculos__title">Control de Vehículos</h1>
     <button class="btn btn--primary" (click)="abrirEntrada()">
       ＋ Registrar entrada
     </button>
@@ -21,6 +20,11 @@
         [ngModel]="scanInput()"
         (ngModelChange)="scanInput.set($event)"
         (keydown)="onScanManual($event)" />
+      @if (soportaCamara()) {
+        <button class="btn btn--icon scanner-bar__camera" (click)="escanearConCamara()" [disabled]="scanningCamara()" title="Escanear con cámara">
+          <lucide-icon name="camera" [size]="18" />
+        </button>
+      }
       @if (scanLoading()) {
         <span class="scanner-bar__status">Buscando...</span>
       }
@@ -98,22 +102,22 @@
         <tbody>
           @for (v of vehiculos(); track v.id_vehiculo) {
             <tr>
-              <td class="table__placa">{{ v.placa }}</td>
-              <td>{{ v.tipoVehiculo?.nombre ?? '—' }}</td>
-              <td>{{ formatFecha(v.fecha_entrada) }}</td>
+              <td class="table__placa" data-label="Placa">{{ v.placa }}</td>
+              <td data-label="Tipo">{{ v.tipoVehiculo?.nombre ?? '—' }}</td>
+              <td data-label="Entrada">{{ formatFecha(v.fecha_entrada) }}</td>
 
               @if (vista() === 'actuales') {
-                <td class="vehiculos__tiempo">{{ tiempoTranscurrido(v.fecha_entrada) }}</td>
-                <td>{{ v.tarifa ? v.tarifa.tipo_cobro + ' $' + v.tarifa.valor : '—' }}</td>
-                <td>
+                <td class="vehiculos__tiempo" data-label="Tiempo">{{ tiempoTranscurrido(v.fecha_entrada) }}</td>
+                <td data-label="Tarifa">{{ v.tarifa ? v.tarifa.tipo_cobro + ' $' + v.tarifa.valor : '—' }}</td>
+                <td data-label="Acciones">
                   <button class="btn btn--sm btn--success" (click)="abrirSalida(v)">
                     Dar salida
                   </button>
                 </td>
               } @else {
-                <td>{{ v.fecha_salida ? formatFecha(v.fecha_salida) : '—' }}</td>
-                <td>{{ v.valor_cobrado != null ? formatMoneda(v.valor_cobrado) : '—' }}</td>
-                <td>
+                <td data-label="Salida">{{ v.fecha_salida ? formatFecha(v.fecha_salida) : '—' }}</td>
+                <td data-label="Cobrado">{{ v.valor_cobrado != null ? formatMoneda(v.valor_cobrado) : '—' }}</td>
+                <td data-label="Estado">
                   <span class="badge"
                     [class.badge--success]="v.estado === 'S'"
                     [class.badge--warning]="v.estado === 'A'"

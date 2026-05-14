@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { VehiculoConFactura } from '../models/parqueadero.models';
 import { API_BASE_URL } from '../config/api.config';
+import QRCode from 'qrcode';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PrintService {
@@ -14,11 +16,6 @@ export class PrintService {
     return this.auth.negocio()?.id_negocio ?? 0;
   }
 
-  /**
-   * Envía el recibo al backend para impresión silenciosa.
-   * El backend genera el PDF y lo manda directamente a la impresora
-   * configurada para este negocio — sin ningún diálogo.
-   */
   imprimirEntrada(vehiculo: VehiculoConFactura): void {
     this.enviarAlBackend(vehiculo, false);
   }
@@ -35,7 +32,6 @@ export class PrintService {
     }).subscribe({
       error: (err) => {
         console.warn('Impresión silenciosa no disponible, usando diálogo del navegador:', err);
-        // Fallback: impresión con iframe si el backend falla
         this.imprimirFallback(v, esSalida);
       },
     });
@@ -43,8 +39,8 @@ export class PrintService {
 
   // ─── Fallback: impresión por navegador si el backend no responde ───────────
 
-  private imprimirFallback(v: VehiculoConFactura, esSalida: boolean): void {
-    const html = this.buildHtml(v, esSalida);
+  private async imprimirFallback(v: VehiculoConFactura, esSalida: boolean): Promise<void> {
+    const html = await this.buildHtml(v, esSalida);
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'display:none;position:absolute;';
     document.body.appendChild(iframe);
@@ -65,7 +61,7 @@ export class PrintService {
     iframe.src = url;
   }
 
-  private buildHtml(v: VehiculoConFactura, esSalida: boolean): string {
+  private async buildHtml(v: VehiculoConFactura, esSalida: boolean): Promise<string> {
     const esc = (s: string) => String(s ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const fmtMoneda = (val: number | null | undefined) =>
@@ -82,6 +78,18 @@ export class PrintService {
     const tipoVeh  = v.tipoVehiculo?.nombre ?? '—';
     const placa    = v.placa ?? '';
     const negocio  = this.auth.negocio()?.nombre ?? 'Parqueadero';
+
+    let qrDataUrl = '';
+    if (v.qr_token) {
+      try {
+        const qrUrl = `${environment.parqueaderoUrl}/salida-qr/${v.qr_token}`;
+        qrDataUrl = await QRCode.toDataURL(qrUrl, {
+          width: 200,
+          margin: 2,
+          color: { dark: '#000000', light: '#FFFFFF' },
+        });
+      } catch (_) { /* continuar sin QR */ }
+    }
 
     return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${titulo}</title>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
@@ -104,6 +112,7 @@ hr{border:none;border-top:1px dashed #aaa;margin:8px 0}.hs{border-top:2px solid 
 ${v.numero_factura ? `<div style="font-size:11px;color:#666;text-align:right">Factura: ${esc(v.numero_factura)}</div>` : ''}
 <div class="c" style="margin:8px 0"><span class="pl">${esc(placa)}</span></div>
 <div class="bw"><svg id="bc" data-val="${esc(placa)}"></svg></div>
+${qrDataUrl ? `<div style="text-align:center;margin:6px 0"><img src="${qrDataUrl}" style="width:120px;height:120px" alt="QR"><div style="font-size:9px;color:#888;margin-top:2px">Escanee para pagar</div></div>` : ''}
 <hr>
 <div class="r"><span class="lbl">Tipo de vehículo</span><span class="bg">${esc(tipoVeh)}</span></div>
 <div class="r"><span class="lbl">Tarifa</span><span class="val">${esc(v.tarifa?.tipo_cobro ?? '—')}${v.tarifa?.valor != null ? ' · ' + fmtMoneda(v.tarifa.valor) : ''}</span></div>
@@ -120,4 +129,3 @@ ${v.observaciones?.trim() ? `<hr><div style="font-size:11px;color:#555;font-styl
 });<\/script></body></html>`;
   }
 }
-

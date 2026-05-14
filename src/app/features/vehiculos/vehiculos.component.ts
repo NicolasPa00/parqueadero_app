@@ -11,6 +11,7 @@ import {
   Bus,
   TriangleAlert,
   ScanLine,
+  Camera,
 } from 'lucide-angular';
 import { ParqueaderoService } from '../../core/data-access/parqueadero.service';
 import { AuthService } from '../../auth/data-access/auth.service';
@@ -29,7 +30,7 @@ type Vista = 'actuales' | 'historial';
     {
       provide: LUCIDE_ICONS,
       multi: true,
-      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert, ScanLine }),
+      useValue: new LucideIconProvider({ Car, Bike, Truck, Bus, TriangleAlert, ScanLine, Camera }),
     },
   ],
 })
@@ -39,25 +40,25 @@ export class VehiculosComponent implements OnInit, OnDestroy {
   private readonly print = inject(PrintService);
 
   // ── Barcode scanner (keyboard-wedge) ──
-  // Acumula caracteres que llegan rápido (< 80 ms entre teclas = escáner)
   private _scanBuffer = '';
   private _scanLastKey = 0;
   private _scanTimer: ReturnType<typeof setTimeout> | null = null;
-  readonly SCAN_DEBOUNCE = 80; // ms
+  readonly SCAN_DEBOUNCE = 80;
 
   scanInput   = signal('');
   scanLoading = signal(false);
   scanError   = signal('');
 
+  // ── Cámara QR scanner ──
+  scanningCamara = signal(false);
+  soportaCamara = signal(false);
+
   @ViewChild('scanInputRef') scanInputRef?: ElementRef<HTMLInputElement>;
 
-  /** Listener global para capturar el escáner cuando ningún input tiene foco */
   @HostListener('document:keydown', ['$event'])
   onGlobalKey(e: KeyboardEvent): void {
     const tag = (e.target as HTMLElement)?.tagName;
-    // Si el foco está en el input manual del escáner no procesamos dos veces
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    // No procesar si hay un modal abierto
     if (this.showEntrada() || this.showSalida()) return;
 
     const now = Date.now();
@@ -70,7 +71,6 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     }
     if (e.key.length === 1) {
       if (now - this._scanLastKey > this.SCAN_DEBOUNCE && this._scanBuffer.length > 0) {
-        // Tiempo entre teclas demasiado largo → era escritura manual, descartar
         this._scanBuffer = '';
       }
       this._scanBuffer += e.key;
@@ -114,13 +114,11 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     return this.tarifas().filter(t => t.id_tipo_vehiculo === tipo);
   });
 
-  // Avisa si el tipo seleccionado no tiene ninguna tarifa registrada
   sinTarifas = computed(() => {
     const tipo = this.entradaTipo();
     return tipo !== null && this.tarifas().length > 0 && this.tarifasFiltradas().length === 0;
   });
 
-  // Valor de salida calculado automáticamente según tarifa + tiempo
   salidaValorCalculado = computed(() => {
     const v = this.vehiculoSalida();
     if (!v?.tarifa) return 0;
@@ -145,7 +143,6 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     }
   });
 
-  // ── Tipo de vehículo → ícono Lucide ──
   readonly TIPO_ICON: Record<string, string> = {
     'automóvil':   'car',
     'motocicleta': 'bike',
@@ -169,10 +166,17 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     this.loadTipos();
     this.loadTarifas();
     this.loadVehiculos();
+    this.detectarSoporteCamara();
   }
 
   ngOnDestroy(): void {
     if (this._scanTimer) clearTimeout(this._scanTimer);
+  }
+
+  private detectarSoporteCamara(): void {
+    if (typeof (window as any).BarcodeDetector !== 'undefined') {
+      this.soportaCamara.set(true);
+    }
   }
 
   // ── Data loading ──
@@ -279,7 +283,6 @@ export class VehiculosComponent implements OnInit, OnDestroy {
         this.savingEntrada.set(false);
         this.cerrarEntrada();
         this.loadVehiculos();
-        // Imprimir recibo de entrada
         if (res.data?.id_factura) {
           this.print.imprimirEntrada(res.data);
         }
@@ -314,7 +317,6 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Disparado por el input de escáner manual (campo visible en página) */
   onScanManual(e: Event): void {
     if ((e as KeyboardEvent).key !== 'Enter') return;
     const placa = this.scanInput().trim().toUpperCase();
@@ -324,7 +326,7 @@ export class VehiculosComponent implements OnInit, OnDestroy {
   }
 
   private procesarScan(placa: string): void {
-    if (this.scanLoading()) return; // Evitar doble escaneo
+    if (this.scanLoading()) return;
     this.scanError.set('');
     this.scanLoading.set(true);
     this.svc.buscarVehiculoActivo(placa, this.idNeg).subscribe({
@@ -343,18 +345,112 @@ export class VehiculosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Helpers ──
+  // ── Cámara QR scanner ──
+  async escanearConCamara(): Promise<void> {
+    if (this.scanningCamara()) return;
+    this.scanningCamara.set(true);
+    this.scanError.set('');
 
-  /**
-   * Normaliza una fecha del API (puede venir sin indicador de zona) a un Date UTC correcto.
-   * Sequelize retorna TIMESTAMP sin 'Z'; los browsers lo interpretan como hora local
-   * en lugar de UTC, causando un desfase de ±5 horas en Colombia (COT = UTC-5).
-   */
+    try {
+      const BarcodeDetector = (window as any).BarcodeDetector;
+      if (BarcodeDetector) {
+        const detector = new BarcodeDetector({
+          formats: ['qr_code', 'code_128', 'ean_13', 'code_39'],
+        });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        await video.play();
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        const scanLoop = async () => {
+          if (!this.scanningCamara()) {
+            stream.getTracks().forEach(t => t.stop());
+            return;
+          }
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          try {
+            const barcodes = await detector.detect(canvas);
+            if (barcodes.length > 0) {
+              const raw = barcodes[0].rawValue;
+              stream.getTracks().forEach(t => t.stop());
+              this.scanningCamara.set(false);
+              const match = raw.match(/salida-qr\/([a-f0-9]{64})/i);
+              if (match) {
+                this.procesarScanQRToken(match[1]);
+              } else {
+                this.procesarScan(raw.toUpperCase());
+              }
+              return;
+            }
+          } catch (_) { /* continuar escaneando */ }
+          requestAnimationFrame(scanLoop);
+        };
+        requestAnimationFrame(scanLoop);
+        this.mostrarOverlayCamara(video, stream);
+      } else {
+        this.scanningCamara.set(false);
+        this.scanError.set('Este navegador no soporta escaneo con cámara. Use el campo manual.');
+      }
+    } catch (err: any) {
+      this.scanningCamara.set(false);
+      this.scanError.set('No se pudo acceder a la cámara. Verifique permisos.');
+    }
+  }
+
+  private mostrarOverlayCamara(video: HTMLVideoElement, stream: MediaStream): void {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center';
+    video.style.cssText = 'max-width:100%;max-height:80vh;border-radius:8px';
+    const btnCancel = document.createElement('button');
+    btnCancel.textContent = 'Cancelar';
+    btnCancel.style.cssText = 'margin-top:16px;padding:12px 24px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer';
+    btnCancel.onclick = () => {
+      stream.getTracks().forEach(t => t.stop());
+      document.body.removeChild(overlay);
+      this.scanningCamara.set(false);
+    };
+    overlay.appendChild(video);
+    overlay.appendChild(btnCancel);
+    document.body.appendChild(overlay);
+  }
+
+  private procesarScanQRToken(token: string): void {
+    this.svc.getVehiculoPorQR(token).subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.vehiculoSalida.set({
+            id_vehiculo: res.data.id_vehiculo,
+            placa: res.data.placa,
+            id_tipo_vehiculo: 0,
+            id_negocio: this.idNeg,
+            fecha_entrada: res.data.fecha_entrada,
+            estado: 'A',
+            tipoVehiculo: res.data.tipoVehiculo ?? undefined,
+            tarifa: res.data.tarifa ?? undefined,
+          });
+          this.showSalida.set(true);
+        } else {
+          this.scanError.set('Vehículo no encontrado o ya salió');
+        }
+      },
+      error: () => {
+        this.scanError.set('Error al buscar vehículo por QR');
+      },
+    });
+  }
+
+  // ── Helpers ──
   private toUTC(fecha: string): Date {
     const s = String(fecha);
-    // Si ya trae info de zona (‘Z’ o ‘+HH:MM’) no hacemos nada
     if (s.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(s)) return new Date(s);
-    // Normalizamos: espacio → 'T', y añadimos 'Z' para forzar lectura UTC
     return new Date(s.replace(' ', 'T') + 'Z');
   }
 

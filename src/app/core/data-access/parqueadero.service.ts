@@ -16,6 +16,8 @@ import {
   Caja,
   MovimientoCaja,
   ConfiguracionParqueadero,
+  VehiculoQR,
+  SalidaQRResponse,
 } from '../../core/models/parqueadero.models';
 
 @Injectable({ providedIn: 'root' })
@@ -145,6 +147,15 @@ export class ParqueaderoService {
 
   upsertConfiguracion(data: Partial<ConfiguracionParqueadero> & { id_negocio: number }): Observable<ApiResponse<ConfiguracionParqueadero>> {
     return this.http.put<ApiResponse<ConfiguracionParqueadero>>(`${this.api}/configuracion`, data);
+  }
+
+  // ── QR Público (sin autenticación) ──
+  getVehiculoPorQR(token: string): Observable<ApiResponse<VehiculoQR>> {
+    return this.http.get<ApiResponse<VehiculoQR>>(`${this.api}/qr/${token}`);
+  }
+
+  confirmarSalidaQR(token: string): Observable<ApiResponse<SalidaQRResponse>> {
+    return this.http.post<ApiResponse<SalidaQRResponse>>(`${this.api}/qr/${token}/confirmar`, {});
   }
 
   // ── Abonados ──
