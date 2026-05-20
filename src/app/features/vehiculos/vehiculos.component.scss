@@ -565,14 +565,15 @@ $bp-mobile: 768px;
   // ── Modal móvil: full-screen con header fijo ──
   .modal-overlay {
     padding: 0;
-    align-items: flex-end; // slide-up desde abajo
+    align-items: flex-end;
+    padding-bottom: 64px;
   }
 
   .modal {
     max-width: 100%;
     width: 100%;
-    max-height: 90vh;
-    max-height: 90dvh;
+    max-height: calc(90vh - 64px);
+    max-height: calc(90dvh - 64px);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     display: flex;
     flex-direction: column;
@@ -683,8 +684,8 @@ $bp-mobile: 768px;
 
   .modal {
     border-radius: 0;
-    max-height: 100vh;
-    max-height: 100dvh;
+    max-height: calc(100vh - 64px);
+    max-height: calc(100dvh - 64px);
 
     &__body { padding: var(--spacing-sm) var(--spacing-md); }
     &__footer { padding: var(--spacing-sm) var(--spacing-md); }
