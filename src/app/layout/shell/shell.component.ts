@@ -2,16 +2,9 @@ import { Component, inject, computed } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
-import {
-  LucideAngularModule,
-  LUCIDE_ICONS,
-  LucideIconProvider,
-  Sun,
-  Moon,
-} from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { ThemeService } from '../../core/theme/theme.service';
 
 @Component({
   selector: 'app-shell',
@@ -19,17 +12,9 @@ import { ThemeService } from '../../core/theme/theme.service';
   imports: [RouterOutlet, SidebarComponent, LucideAngularModule],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
-  providers: [
-    {
-      provide: LUCIDE_ICONS,
-      multi: true,
-      useValue: new LucideIconProvider({ Sun, Moon }),
-    },
-  ],
 })
 export class ShellComponent {
   protected readonly authService = inject(AuthService);
-  protected readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
 
   protected readonly currentYear = new Date().getFullYear();

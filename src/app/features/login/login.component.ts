@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { ThemeService } from '../../core/theme/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +11,6 @@ import { ThemeService } from '../../core/theme/theme.service';
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  protected readonly themeService = inject(ThemeService);
 
   protected readonly token = signal('');
   protected readonly loading = signal(false);

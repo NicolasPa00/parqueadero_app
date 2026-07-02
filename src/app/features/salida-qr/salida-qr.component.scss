@@ -185,7 +185,7 @@
     color: #fff;
 
     &:hover:not(:disabled) {
-      background-color: #1b5e20;
+      background-color: color-mix(in srgb, var(--color-success) 80%, #000);
     }
   }
 
