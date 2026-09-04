@@ -31,15 +31,10 @@
     }
   </nav>
 
-  <div class="sidebar-user">
-    <div class="user-avatar">
-      {{ auth.usuario()?.nombre_completo?.charAt(0) ?? 'U' }}
-    </div>
-    <div class="user-info">
-      <span class="user-name">{{ auth.usuario()?.nombre_completo ?? 'Usuario' }}</span>
-    </div>
-    <button class="btn-logout" (click)="onLogout()" title="Cerrar sesión">
-      <lucide-icon name="log-out" [size]="18" />
+  <div class="sidebar-foot">
+    <button type="button" class="nav-item nav-item--logout" (click)="onLogout()" title="Cerrar sesión">
+      <lucide-icon name="log-out" [size]="20" />
+      <span class="nav-label">Cerrar sesión</span>
     </button>
   </div>
 </aside>

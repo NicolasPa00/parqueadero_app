@@ -19,6 +19,14 @@ export class ShellComponent {
 
   protected readonly currentYear = new Date().getFullYear();
 
+  /** Iniciales del usuario para el avatar del chip del header. */
+  protected readonly initials = computed(() => {
+    const nombre = this.authService.usuario()?.nombre_completo?.trim();
+    if (!nombre) return 'U';
+    const parts = nombre.split(/\s+/);
+    return `${parts[0]?.charAt(0) ?? ''}${parts[1]?.charAt(0) ?? ''}`.toUpperCase();
+  });
+
   protected readonly pageTitle = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),

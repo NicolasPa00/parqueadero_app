@@ -8,7 +8,12 @@
     </div>
 
     <div class="topbar__right">
-      <span class="topbar__user">{{ authService.usuario()?.nombre_completo ?? '' }}</span>
+      @if (authService.usuario(); as u) {
+        <div class="user-chip" aria-label="Sesión activa">
+          <span class="user-chip__avatar" aria-hidden="true">{{ initials() }}</span>
+          <span class="user-chip__name">{{ u.nombre_completo }}</span>
+        </div>
+      }
     </div>
   </header>
 
